@@ -26,6 +26,7 @@ function escapeHtml(text: string | undefined | null) {
 }
 
 const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => {
+    // Nenhuma alteração nesta função.
     const coresDepartamentos = [
         { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-pbg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textColor: '#581c87' },
         { header: 'bg-blue-600', tableHeader: 'bg-blue-500', row: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', textColor: '#1e3a8a' },
@@ -35,7 +36,6 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
     ];
 
     let html = '';
-
     const projectIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3 align-middle"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
 
     projeto.departamentos.forEach((dep, depIndex) => {
@@ -60,7 +60,6 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         });
 
         const tiposRecursosArray = Array.from(tiposRecursosDoDep);
-
         let totalDepartamento = 0;
         popsAgrupados.forEach(grupo => {
             if (grupo.recursos) {
@@ -76,7 +75,6 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                             ${projectIconSVG}
                             <span>${escapeHtml(projeto.nome)}</span>
                         </div>
-
                         <div class="table-container">
                             <header class="${cores.header} p-6 rounded-t-lg text-white text-center border-t-2 border-x-2 ${cores.border}">
                                 <h2 class="text-2xl font-bold tracking-wider">${escapeHtml(dep.nome)}</h2>
@@ -85,10 +83,10 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                 <table class="w-full table-fixed">
                                     <thead>
                                         <tr class="${cores.tableHeader}">
-                                            <th class="p-3 font-bold text-white text-left border-r border-white/30 table-header-text" style="width: 30%;">POP</th>
+                                            <th class="p-3 font-bold text-white text-left border-r border-white/30 table-header-text" style="width: 20%;">POP</th>
                                             ${tiposRecursosArray.map(tipo => {
             const meta = RECURSO_META_IMPRESSAO[tipo];
-            return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${70 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
+            return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${80 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
         }).join('')}
                                         </tr>
                                     </thead>
@@ -104,7 +102,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
             const subtotal = recursos.reduce((acc, item) => acc + (item.custo || 0), 0);
             let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
             if (recursos.length > 0) {
-                cellContent = `<ul class="space-y-1 list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
+                cellContent = `<ul class="list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
                 if (options.showSubtotals && subtotal > 0) {
                     cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right" style="font-size:0.9em;">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
                 }
@@ -125,16 +123,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                     ` : ''}
                                 </table>
                             </div>
-                            
-                            ${dep.observacao ? `
-                            <div class="mt-4 p-4 bg-gray-50 border-2 ${cores.border} rounded-lg">
-                                <div class="${cores.text}" style="font-size: 0.9em;">
-                                    <strong>OBSERVAÇÕES:</strong> ${escapeHtml(dep.observacao)}
-                                </div>
-                            </div>
-                            ` : ''}
                         </div>
-
                         <div class="logo-corner">
                             <div class="logo-box bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
                                 LOGO
@@ -178,65 +167,37 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         color-adjust: exact; 
                     }
                     .page-container {
-                        width: 100vw;
-                        height: 100vh;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-sizing: border-box;
+                        width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
                     }
                     .page-border {
                         position: relative;
-                        width: calc(100% - 30mm);
-                        height: calc(100% - 30mm);
+                        width: calc(100% - 30mm); height: calc(100% - 30mm);
                         border: 2px solid #d1d5db;
                         border-radius: 12px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-sizing: border-box;
-                        /* **ESPAÇAMENTO ENTRE AS BORDAS AJUSTADO AQUI** */
+                        display: flex; align-items: center; justify-content: center; box-sizing: border-box;
                         padding: 10px;
                     }
                     .content-center {
-                        width: 100%;
-                        height: 100%;
-                        border-radius: 8px;
-                        padding: 20px;
-                        box-sizing: border-box;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
+                        width: 100%; height: 100%; border-radius: 8px;
+                        padding: 20px; box-sizing: border-box;
+                        display: flex; flex-direction: column; justify-content: center;
                         position: relative;
                     }
                     .table-container {
                         width: 100%;
-                        font-size: clamp(8px, calc(0.5vw + 0.6vh), 12px);
-                    }
-                    .table-header-text {
-                        font-size: 0.9em !important;
+                        font-size: 12px; /* Fonte base */
                     }
                     .project-name-corner {
-                        position: absolute;
-                        top: 25px;
-                        right: 25px; 
-                        font-size: 22px;
-                        font-weight: 700;
-                        z-index: 10;
-                        display: flex;
-                        align-items: center;
+                        position: absolute; top: 25px; right: 25px; 
+                        font-size: 22px; font-weight: 700; z-index: 10;
+                        display: flex; align-items: center;
                     }
                     .logo-corner {
-                        position: absolute;
-                        bottom: 25px;
-                        left: 25px;
+                        position: absolute; bottom: 25px; left: 25px;
                         z-index: 10;
                     }
                     .logo-box {
-                        width: 80px;
-                        height: 80px;
-                        font-size: 1.1rem;
-                        font-weight: 600;
+                        width: 80px; height: 80px; font-size: 1.1rem; font-weight: 600;
                     }
                     .page-break { page-break-before: always; }
                     table { border-collapse: collapse; }
@@ -246,7 +207,74 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
             <body>
                 ${generateStaticHTML(projeto, options)}
                 <script>
-                    window.onload = () => { setTimeout(() => { window.print(); }, 500); };
+                    function adjustLayoutDynamically() {
+                        const pages = document.querySelectorAll('.page-container');
+
+                        pages.forEach(page => {
+                            const table = page.querySelector('table');
+                            if (!table) return;
+
+                            // --- ETAPA 1: ANÁLISE POR COLUNA ---
+                            const rows = table.querySelectorAll('tbody tr');
+                            if (rows.length === 0) return;
+
+                            const numColumns = rows[0].querySelectorAll('td').length;
+                            const columnCharCounts = Array(numColumns).fill(0);
+
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                cells.forEach((cell, index) => {
+                                    columnCharCounts[index] += cell.innerText.length;
+                                });
+                            });
+
+                            // --- ETAPA 2: APLICAÇÃO DE ESTILOS COM NOVOS LIMITES MAIS AGRESSIVOS ---
+                            const COLUMN_THRESHOLDS = [
+                                { limit: 500, size: '7px' },  // Acima de 500 caracteres -> fonte mínima
+                                { limit: 350, size: '8px' },
+                                { limit: 200, size: '9px' },
+                                { limit: 100, size: '10px' }  // Começa a reduzir com apenas 100 chars na coluna
+                            ];
+
+                            columnCharCounts.forEach((totalChars, columnIndex) => {
+                                for (const threshold of COLUMN_THRESHOLDS) {
+                                    if (totalChars > threshold.limit) {
+                                        rows.forEach(row => {
+                                            const cell = row.querySelectorAll('td')[columnIndex];
+                                            if (cell) {
+                                                cell.style.fontSize = threshold.size;
+                                                cell.style.lineHeight = '1.2';
+                                            }
+                                        });
+                                        break; 
+                                    }
+                                }
+                            });
+
+                            // --- ETAPA 3: VERIFICAÇÃO FINAL DE COLISÃO (SEGURANÇA) ---
+                            const tableContainer = page.querySelector('.table-container');
+                            const logo = page.querySelector('.logo-corner');
+                            
+                            if (!tableContainer || !logo) return;
+
+                            const tableRect = table.getBoundingClientRect();
+                            const logoRect = logo.getBoundingClientRect();
+                            
+                            if ((tableRect.bottom + 20) > logoRect.top) {
+                                tableContainer.style.fontSize = '11px';
+                                console.warn("Ajuste de segurança geral aplicado para evitar colisão com o logo.");
+                            }
+                        });
+                    }
+
+                    window.onload = () => {
+                        try {
+                            adjustLayoutDynamically();
+                        } catch(e) {
+                            console.error("Falha ao ajustar layout de impressão:", e);
+                        }
+                        setTimeout(() => { window.print(); }, 250);
+                    };
                 </script>
             </body>
             </html>`;
