@@ -34,7 +34,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         { header: 'bg-amber-600', tableHeader: 'bg-amber-500', row: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900' },
     ];
 
-    let html = '<div class="font-sans text-gray-800 max-w-7xl mx-auto">';
+    let html = '<div class="main-content-container font-sans text-gray-800">';
 
     projeto.departamentos.forEach((dep, depIndex) => {
         const cores = coresDepartamentos[depIndex % coresDepartamentos.length];
@@ -49,14 +49,10 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         });
 
         const tiposRecursosDoDep = new Set<CategoriasRecursos>();
-        let totalRecursos = 0;
         popsAgrupados.forEach(grupo => {
             if (grupo.recursos) {
                 (Object.keys(grupo.recursos) as CategoriasRecursos[]).forEach(tipo => {
-                    if (grupo.recursos[tipo] && grupo.recursos[tipo].length > 0) {
-                        tiposRecursosDoDep.add(tipo);
-                        totalRecursos += grupo.recursos[tipo].length;
-                    }
+                    if (grupo.recursos[tipo] && grupo.recursos[tipo].length > 0) tiposRecursosDoDep.add(tipo);
                 });
             }
         });
@@ -67,14 +63,11 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         if (options.showSubtotals) {
             popsAgrupados.forEach(grupo => {
                 if (grupo.recursos) {
-                    Object.values(grupo.recursos).flat().forEach(rec => {
-                        totalDepartamento += rec.custo || 0;
-                    });
+                    Object.values(grupo.recursos).flat().forEach(rec => { totalDepartamento += rec.custo || 0; });
                 }
             });
         }
 
-        // ✨ CADA DEPARTAMENTO AGORA É UM BLOCO QUE TENTA NÃO QUEBRAR A PÁGINA
         html += `
             <div class="department-report ${depIndex > 0 ? 'page-break' : ''}">
                 <header class="${cores.header} p-4 rounded-t-lg text-white text-center shadow-lg border-t-2 border-x-2 ${cores.border}">
@@ -97,11 +90,11 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                 <tr class="${grupoIndex % 2 === 0 ? 'bg-white' : cores.row}">
                                     <td class="p-3 border-t border-r ${cores.border} font-semibold ${cores.text} align-top">
                                         <div class="font-bold">${escapeHtml(grupo.popNames.join(', '))}</div>
-                                        ${grupo.grupo ? `<div class="text-xs opacity-70 mt-1">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
+                                        ${grupo.grupo ? `<div class="opacity-70 mt-1" style="font-size: 0.8em;">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
                                     </td>
                                     ${tiposRecursosArray.map(tipo => {
             const recursos = grupo.recursos[tipo] || [];
-            const subtotal = recursos.reduce((acc: number, item: Recurso) => acc + (item.custo || 0), 0);
+            const subtotal = recursos.reduce((acc, item) => acc + (item.custo || 0), 0);
             let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
             if (recursos.length > 0) {
                 cellContent = `<ul class="space-y-1 list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
@@ -117,7 +110,6 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                         ${options.showSubtotals && totalDepartamento > 0 ? `
                         <tfoot>
                             <tr class="${cores.tableHeader} text-white font-bold">
-                                {/* ✨ ESTILO DO TOTAL ALTERADO: CLASSE ADICIONADA */}
                                 <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right total-footer">
                                     TOTAL DO DEPARTAMENTO: ${totalDepartamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </td>
@@ -130,7 +122,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         if (dep.observacao) {
             html += `<div class="mt-4 p-4 rounded-lg border-2 ${cores.border} ${cores.row} shadow-sm"><strong class="${cores.text}">OBSERVAÇÕES:</strong> <span class="ml-2">${escapeHtml(dep.observacao).replace(/\n/g, '<br>')}</span></div>`;
         }
-        html += `</div>`; // Fim de .department-report
+        html += `</div>`;
     });
 
     html += '</div>';
@@ -159,9 +151,8 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                 <style>
                     @page { 
                         size: A4 landscape; 
-                        margin: 1cm; /* Margem reduzida para dar mais espaço */
+                        margin: 1cm;
                     }
-                    /* ✨ REGRAS DE CSS MELHORADAS PARA CENTRALIZAÇÃO E ESCALA */
                     html, body {
                         height: 100%;
                         width: 100%;
@@ -172,7 +163,20 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         font-family: ui-sans-serif, system-ui, sans-serif; 
                         -webkit-print-color-adjust: exact; 
                         color-adjust: exact;
-                        line-height: 1.4;
+                        background-color: #e5e5e5; /* Fundo cinza para ver os limites */
+                    }
+                    /* INVÓLUCRO PARA FORÇAR CENTRALIZAÇÃO */
+                    #print-wrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    /* CONTAINER PRINCIPAL DO CONTEÚDO */
+                    .main-content-container {
+                         max-width: 95%; /* Limita a largura máxima */
+                         flex-shrink: 0;  /* Impede que o flexbox encolha o item */
                     }
                     .page-break { page-break-before: always; }
                     table { border-collapse: collapse; }
@@ -181,36 +185,21 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         overflow-wrap: break-word;
                     }
                     .subtotal-text {
-                        font-size: 0.8em; /* Fonte do subtotal menor */
-                        color: #4b5563;  /* Cor cinza escura para o subtotal */
+                        font-size: 0.8em;
+                        color: #4b5563;
                     }
                     .total-footer {
-                        font-size: 0.9em; /* Fonte do total um pouco menor */
-                        color: #e5e7eb;  /* Cor cinza clara para contrastar com o fundo escuro */
+                        font-size: 0.9em;
+                        color: #e5e7eb;
                     }
 
                     @media print {
-                        html, body {
-                           background-color: #f0f0f0; /* Fundo cinza claro para visualização */
-                        }
-                        body {
-                            /* Força a centralização vertical e horizontal */
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        /* O container principal do relatório */
-                        body > div {
-                            width: 100%;
-                            height: fit-content;
-                        }
-                        /* O bloco de cada departamento */
+                        body { background-color: transparent; } /* Remove fundo cinza na impressão final */
                         .department-report {
-                           /* TENTA MANTER TUDO EM UMA PÁGINA */
                            page-break-inside: avoid !important;
-                           /* A MÁGICA ACONTECE AQUI: A fonte escala com a altura da página */
-                           font-size: 1.2vh; 
-                           margin-bottom: 2em; /* Espaçamento entre relatórios, se houver mais de um */
+                           font-size: 1.1vh;
+                           max-height: 98%; /* Garante que não ultrapasse a área de impressão */
+                           overflow: hidden; /* Esconde qualquer estouro */
                         }
                         .shadow-lg, .shadow-sm {
                             box-shadow: none !important;
@@ -219,7 +208,9 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                 </style>
             </head>
             <body>
-                ${generateStaticHTML(projeto, options)}
+                <div id="print-wrapper">
+                  ${generateStaticHTML(projeto, options)}
+                </div>
                 <script>
                     window.onload = () => {
                         setTimeout(() => { window.print(); }, 500);
