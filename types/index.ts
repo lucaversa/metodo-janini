@@ -35,8 +35,8 @@ export type Departamento = {
     id: string;
     nome: string;
     pops: Pop[];
-    // NOVO: Cada departamento agora gere os seus próprios grupos de recursos
     gruposDeRecursos: GrupoDeRecursos[];
+    observacao?: string; // << NOVO: Campo para observações
 };
 
 export type Projeto = {

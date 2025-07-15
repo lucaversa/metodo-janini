@@ -5,7 +5,7 @@ import { Departamento, Pop, Recursos, GrupoDeRecursos, CategoriasRecursos } from
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, Plus, Users, Edit, FileText } from 'lucide-react';
+import { Trash2, Plus, Users, Edit, FileText, MessageSquare } from 'lucide-react';
 import { PopCard } from './PopCard';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
@@ -15,6 +15,8 @@ import { RECURSO_META } from '@/lib/constants';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface DepartmentCardProps {
     departamento: Departamento;
@@ -35,7 +37,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
     const [isAddingPop, setIsAddingPop] = useState(false);
     const [isAddingGroup, setIsAddingGroup] = useState(false);
 
-    // ... (todas as funções de lógica continuam iguais)
+    // ... (funções de lógica continuam iguais)
     const updateDepartment = (updates: Partial<Departamento>) => { onUpdate({ ...departamento, ...updates }); };
     const addPop = () => {
         if (newPopName.trim() === '') return;
@@ -90,34 +92,26 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="pops" className="w-full">
-                        {/* <<<<<<< ESTILO ATUALIZADO PARA ABAS >>>>>>> */}
-                        <TabsList className="grid w-full grid-cols-2 bg-slate-200/60 h-auto p-1">
-                            <TabsTrigger
-                                value="pops"
-                                className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <FileText size={18} />
-                                    <span className="text-base">POPs</span>
-                                </div>
+                        <TabsList className="grid w-full grid-cols-3 bg-slate-100 h-auto p-1">
+                            <TabsTrigger value="pops" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
+                                <div className="flex items-center gap-2"><FileText size={18} />POPs</div>
                             </TabsTrigger>
-                            <TabsTrigger
-                                value="modelos"
-                                className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Users size={18} />
-                                    <span className="text-base">Modelos de Recursos</span>
-                                </div>
+                            <TabsTrigger value="modelos" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
+                                <div className="flex items-center gap-2"><Users size={18} />Modelos</div>
+                            </TabsTrigger>
+                            <TabsTrigger value="observacoes" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
+                                <div className="flex items-center gap-2"><MessageSquare size={18} />Observações</div>
                             </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="pops" className="mt-4">
                             <div className="p-4 border rounded-lg bg-slate-50">
                                 <p className="text-sm text-muted-foreground mb-4">Adicione POPs e associe-os a um modelo de recursos ou configure-os individualmente.</p>
-                                {(departamento.pops || []).map(pop => (
-                                    <PopCard key={pop.id} pop={pop} gruposDisponiveis={departamento.gruposDeRecursos || []} onUpdate={updatePop} onDelete={deletePop} />
-                                ))}
+                                <div className="space-y-2">
+                                    {(departamento.pops || []).map(pop => (
+                                        <PopCard key={pop.id} pop={pop} gruposDisponiveis={departamento.gruposDeRecursos || []} onUpdate={updatePop} onDelete={deletePop} />
+                                    ))}
+                                </div>
                                 <div className="pt-4 border-t mt-4">
                                     <AnimatePresence>
                                         {isAddingPop && (
@@ -182,6 +176,21 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
                                         <Button onClick={() => setIsAddingGroup(true)} variant="outline" className="w-full border-dashed"><Plus className="mr-2 h-4 w-4" /> Criar Modelo</Button>
                                     )}
                                 </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="observacoes" className="mt-4">
+                            <div className="p-4 border rounded-lg bg-slate-100">
+                                <Label htmlFor={`obs-${departamento.id}`} className="font-bold text-lg mb-1">Observações do Departamento</Label>
+                                <p className="text-sm text-muted-foreground mb-4">O texto que escrever aqui aparecerá no rodapé do relatório deste departamento.</p>
+                                <Textarea
+                                    id={`obs-${departamento.id}`}
+                                    placeholder="Escreva aqui as suas observações..."
+                                    value={departamento.observacao || ''}
+                                    onChange={(e) => updateDepartment({ observacao: e.target.value })}
+                                    className="min-h-[120px] bg-white"
+                                    rows={5}
+                                />
                             </div>
                         </TabsContent>
                     </Tabs>
