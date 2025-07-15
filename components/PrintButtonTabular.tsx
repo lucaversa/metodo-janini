@@ -124,9 +124,9 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                 </table>
                             </div>
                         </div>
-                        <div class="logo-corner">
-                            <div class="logo-box bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
-                                LOGO
+                       <div class="logo-corner">
+                            <div class="logo-box flex items-center justify-center">
+                                <img src="/logo.png" alt="Logo da Empresa" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                             </div>
                         </div>
                     </div>
@@ -193,11 +193,14 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         display: flex; align-items: center;
                     }
                     .logo-corner {
-                        position: absolute; bottom: 25px; left: 25px;
+                        position: absolute; bottom: 0px; left: 25px;
                         z-index: 10;
                     }
                     .logo-box {
-                        width: 80px; height: 80px; font-size: 1.1rem; font-weight: 600;
+                        width: 170px;  /* De 80px para 120px */
+                        height: 100px; /* De 80px para 100px */
+                        font-size: 1.1rem;
+                        font-weight: 600;
                     }
                     .page-break { page-break-before: always; }
                     table { border-collapse: collapse; }
