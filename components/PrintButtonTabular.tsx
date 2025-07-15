@@ -25,7 +25,6 @@ function escapeHtml(text: string | undefined | null) {
     return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-// Função que gera o HTML estático com todas as correções
 const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => {
     const coresDepartamentos = [
         { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900' },
@@ -50,17 +49,20 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         });
 
         const tiposRecursosDoDep = new Set<CategoriasRecursos>();
+        let totalRecursos = 0;
         popsAgrupados.forEach(grupo => {
             if (grupo.recursos) {
                 (Object.keys(grupo.recursos) as CategoriasRecursos[]).forEach(tipo => {
-                    if (grupo.recursos[tipo] && grupo.recursos[tipo].length > 0) tiposRecursosDoDep.add(tipo);
+                    if (grupo.recursos[tipo] && grupo.recursos[tipo].length > 0) {
+                        tiposRecursosDoDep.add(tipo);
+                        totalRecursos += grupo.recursos[tipo].length;
+                    }
                 });
             }
         });
 
         const tiposRecursosArray = Array.from(tiposRecursosDoDep);
 
-        // CÁLCULO DO TOTAL DO DEPARTAMENTO
         let totalDepartamento = 0;
         if (options.showSubtotals) {
             popsAgrupados.forEach(grupo => {
@@ -72,8 +74,9 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
             });
         }
 
+        // ✨ CADA DEPARTAMENTO AGORA É UM BLOCO QUE TENTA NÃO QUEBRAR A PÁGINA
         html += `
-            <div class="${depIndex > 0 ? 'page-break' : ''} avoid-break mb-8">
+            <div class="department-report ${depIndex > 0 ? 'page-break' : ''}">
                 <header class="${cores.header} p-4 rounded-t-lg text-white text-center shadow-lg border-t-2 border-x-2 ${cores.border}">
                     <h1 class="text-2xl font-bold tracking-wider">${escapeHtml(projeto.nome)}</h1>
                     <h2 class="text-lg font-light">${escapeHtml(dep.nome)}</h2>
@@ -93,21 +96,20 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                             ${Array.from(popsAgrupados.values()).map((grupo, grupoIndex) => `
                                 <tr class="${grupoIndex % 2 === 0 ? 'bg-white' : cores.row}">
                                     <td class="p-3 border-t border-r ${cores.border} font-semibold ${cores.text} align-top">
-                                        <div class="font-bold text-sm">${escapeHtml(grupo.popNames.join(', '))}</div>
+                                        <div class="font-bold">${escapeHtml(grupo.popNames.join(', '))}</div>
                                         ${grupo.grupo ? `<div class="text-xs opacity-70 mt-1">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
                                     </td>
                                     ${tiposRecursosArray.map(tipo => {
             const recursos = grupo.recursos[tipo] || [];
             const subtotal = recursos.reduce((acc: number, item: Recurso) => acc + (item.custo || 0), 0);
-            let cellContent = `<span class="text-gray-400 italic text-sm">N/A</span>`;
+            let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
             if (recursos.length > 0) {
-                cellContent = `<ul class="space-y-1 list-none p-0 m-0">${recursos.map(rec => `<li class="text-sm">${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
-                {/* LÓGICA DO SUBTOTAL CORRIGIDA: mostra se o subtotal for maior que zero */ }
+                cellContent = `<ul class="space-y-1 list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
                 if (options.showSubtotals && subtotal > 0) {
-                    cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right text-sm">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
+                    cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right subtotal-text">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
                 }
             }
-            return `<td class="p-2 text-xs border-t border-r ${cores.border} last:border-r-0 align-top">${cellContent}</td>`;
+            return `<td class="p-2 border-t border-r ${cores.border} last:border-r-0 align-top">${cellContent}</td>`;
         }).join('')}
                                 </tr>
                             `).join('')}
@@ -115,7 +117,8 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                         ${options.showSubtotals && totalDepartamento > 0 ? `
                         <tfoot>
                             <tr class="${cores.tableHeader} text-white font-bold">
-                                <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right">
+                                {/* ✨ ESTILO DO TOTAL ALTERADO: CLASSE ADICIONADA */}
+                                <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right total-footer">
                                     TOTAL DO DEPARTAMENTO: ${totalDepartamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </td>
                             </tr>
@@ -127,7 +130,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         if (dep.observacao) {
             html += `<div class="mt-4 p-4 rounded-lg border-2 ${cores.border} ${cores.row} shadow-sm"><strong class="${cores.text}">OBSERVAÇÕES:</strong> <span class="ml-2">${escapeHtml(dep.observacao).replace(/\n/g, '<br>')}</span></div>`;
         }
-        html += `</div>`;
+        html += `</div>`; // Fim de .department-report
     });
 
     html += '</div>';
@@ -151,17 +154,17 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
             <html lang="pt-BR">
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Relatório - ${escapeHtml(projeto.nome)}</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @page { 
                         size: A4 landscape; 
-                        margin: 15mm; 
+                        margin: 1cm; /* Margem reduzida para dar mais espaço */
                     }
+                    /* ✨ REGRAS DE CSS MELHORADAS PARA CENTRALIZAÇÃO E ESCALA */
                     html, body {
-                        /* Garante que o body ocupe a página toda para centralizar */
                         height: 100%;
+                        width: 100%;
                         margin: 0;
                         padding: 0;
                     }
@@ -171,28 +174,44 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         color-adjust: exact;
                         line-height: 1.4;
                     }
-                    .page-break { 
-                        page-break-before: always; 
-                    }
-                    .avoid-break { 
-                        page-break-inside: avoid; 
-                    }
-                    table {
-                        border-collapse: collapse;
-                    }
+                    .page-break { page-break-before: always; }
+                    table { border-collapse: collapse; }
                     th, td {
                         word-wrap: break-word;
                         overflow-wrap: break-word;
                     }
+                    .subtotal-text {
+                        font-size: 0.8em; /* Fonte do subtotal menor */
+                        color: #4b5563;  /* Cor cinza escura para o subtotal */
+                    }
+                    .total-footer {
+                        font-size: 0.9em; /* Fonte do total um pouco menor */
+                        color: #e5e7eb;  /* Cor cinza clara para contrastar com o fundo escuro */
+                    }
+
                     @media print {
-                        /* Centraliza o conteúdo na página de impressão */
+                        html, body {
+                           background-color: #f0f0f0; /* Fundo cinza claro para visualização */
+                        }
                         body {
+                            /* Força a centralização vertical e horizontal */
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            font-size: 10px; /* Ajuste fino do tamanho da fonte */
                         }
-                        /* Remove sombras na impressão */
+                        /* O container principal do relatório */
+                        body > div {
+                            width: 100%;
+                            height: fit-content;
+                        }
+                        /* O bloco de cada departamento */
+                        .department-report {
+                           /* TENTA MANTER TUDO EM UMA PÁGINA */
+                           page-break-inside: avoid !important;
+                           /* A MÁGICA ACONTECE AQUI: A fonte escala com a altura da página */
+                           font-size: 1.2vh; 
+                           margin-bottom: 2em; /* Espaçamento entre relatórios, se houver mais de um */
+                        }
                         .shadow-lg, .shadow-sm {
                             box-shadow: none !important;
                         }
