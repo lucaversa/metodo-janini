@@ -1,6 +1,6 @@
-// components/ProjectEditor.tsx
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Projeto, Departamento } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,13 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
     const [editedProject, setEditedProject] = useState<Projeto>(projeto);
     const [newDepartmentName, setNewDepartmentName] = useState('');
     const [isAddingDepartment, setIsAddingDepartment] = useState(false);
+    const [openDepartmentId, setOpenDepartmentId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (projeto.departamentos.length > 0 && openDepartmentId === null) {
+            setOpenDepartmentId(projeto.departamentos[0].id);
+        }
+    }, [projeto.departamentos, openDepartmentId]);
 
     const updateProject = (projetoAtualizado: Projeto) => {
         setEditedProject(projetoAtualizado);
@@ -31,10 +38,12 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
     const addDepartment = () => {
         if (newDepartmentName.trim() === '') return;
         const newDepartment: Departamento = { id: uuidv4(), nome: newDepartmentName, pops: [], gruposDeRecursos: [] };
-        updateProject({ ...editedProject, departamentos: [...editedProject.departamentos, newDepartment] });
+        const newProjectState = { ...editedProject, departamentos: [...editedProject.departamentos, newDepartment] };
+        updateProject(newProjectState);
         setNewDepartmentName('');
         setIsAddingDepartment(false);
         toast.success(`Departamento "${newDepartmentName}" adicionado.`);
+        setOpenDepartmentId(newDepartment.id);
     };
 
     const updateDepartment = (depAtualizado: Departamento) => {
@@ -51,6 +60,10 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
 
     const handleDepartmentReorder = (newOrder: Departamento[]) => {
         updateProject({ ...editedProject, departamentos: newOrder });
+    };
+
+    const handleToggleDepartment = (depId: string) => {
+        setOpenDepartmentId(prevId => (prevId === depId ? null : depId));
     };
 
     const calculateTotalProjeto = () => {
@@ -91,6 +104,8 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
                                 departamento={dep}
                                 onUpdate={updateDepartment}
                                 onDelete={deleteDepartment}
+                                isOpen={openDepartmentId === dep.id}
+                                onToggle={() => handleToggleDepartment(dep.id)}
                             />
                         </Reorder.Item>
                     ))}
