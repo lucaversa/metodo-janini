@@ -125,6 +125,14 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                     ` : ''}
                                 </table>
                             </div>
+                            
+                            ${dep.observacao ? `
+                            <div class="mt-4 p-4 bg-gray-50 border-2 ${cores.border} rounded-lg">
+                                <div class="${cores.text}" style="font-size: 0.9em;">
+                                    <strong>OBSERVAÇÕES:</strong> ${escapeHtml(dep.observacao)}
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
 
                         <div class="logo-corner">
