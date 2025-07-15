@@ -27,14 +27,16 @@ function escapeHtml(text: string | undefined | null) {
 
 const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => {
     const coresDepartamentos = [
-        { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900' },
-        { header: 'bg-blue-600', tableHeader: 'bg-blue-500', row: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900' },
-        { header: 'bg-emerald-600', tableHeader: 'bg-emerald-500', row: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900' },
-        { header: 'bg-rose-600', tableHeader: 'bg-rose-500', row: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-900' },
-        { header: 'bg-amber-600', tableHeader: 'bg-amber-500', row: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900' },
+        { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-pbg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textColor: '#581c87' },
+        { header: 'bg-blue-600', tableHeader: 'bg-blue-500', row: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', textColor: '#1e3a8a' },
+        { header: 'bg-emerald-600', tableHeader: 'bg-emerald-500', row: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-900', textColor: '#065f46' },
+        { header: 'bg-rose-600', tableHeader: 'bg-rose-500', row: 'bg-rose-50', border: 'border-rose-300', text: 'text-rose-900', textColor: '#881337' },
+        { header: 'bg-amber-600', tableHeader: 'bg-amber-500', row: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-900', textColor: '#92400e' },
     ];
 
-    let html = '<div class="main-content-container font-sans text-gray-800">';
+    let html = '';
+
+    const projectIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3 align-middle"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
 
     projeto.departamentos.forEach((dep, depIndex) => {
         const cores = coresDepartamentos[depIndex % coresDepartamentos.length];
@@ -60,72 +62,81 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         const tiposRecursosArray = Array.from(tiposRecursosDoDep);
 
         let totalDepartamento = 0;
-        if (options.showSubtotals) {
-            popsAgrupados.forEach(grupo => {
-                if (grupo.recursos) {
-                    Object.values(grupo.recursos).flat().forEach(rec => { totalDepartamento += rec.custo || 0; });
-                }
-            });
-        }
+        popsAgrupados.forEach(grupo => {
+            if (grupo.recursos) {
+                Object.values(grupo.recursos).flat().forEach(rec => { totalDepartamento += rec.custo || 0; });
+            }
+        });
 
         html += `
-            <div class="department-report ${depIndex > 0 ? 'page-break' : ''}">
-                <header class="${cores.header} p-4 rounded-t-lg text-white text-center shadow-lg border-t-2 border-x-2 ${cores.border}">
-                    <h1 class="text-2xl font-bold tracking-wider">${escapeHtml(projeto.nome)}</h1>
-                    <h2 class="text-lg font-light">${escapeHtml(dep.nome)}</h2>
-                </header>
-                <div class="overflow-hidden border-x-2 border-b-2 ${cores.border} rounded-b-lg shadow-lg bg-white">
-                    <table class="w-full table-fixed">
-                        <thead>
-                            <tr class="${cores.tableHeader}">
-                                <th class="p-3 font-bold text-white text-left border-r border-white/30" style="width: 30%;">POP</th>
-                                ${tiposRecursosArray.map(tipo => {
+            <div class="page-container ${depIndex > 0 ? 'page-break' : ''}">
+                <div class="page-border">
+                    <div class="content-center border-4 ${cores.border}">
+                        <div class="project-name-corner" style="color: ${cores.textColor};">
+                            ${projectIconSVG}
+                            <span>${escapeHtml(projeto.nome)}</span>
+                        </div>
+
+                        <div class="table-container">
+                            <header class="${cores.header} p-6 rounded-t-lg text-white text-center border-t-2 border-x-2 ${cores.border}">
+                                <h2 class="text-2xl font-bold tracking-wider">${escapeHtml(dep.nome)}</h2>
+                            </header>
+                            <div class="overflow-hidden border-x-2 border-b-2 ${cores.border} rounded-b-lg bg-white">
+                                <table class="w-full table-fixed">
+                                    <thead>
+                                        <tr class="${cores.tableHeader}">
+                                            <th class="p-3 font-bold text-white text-left border-r border-white/30 table-header-text" style="width: 30%;">POP</th>
+                                            ${tiposRecursosArray.map(tipo => {
             const meta = RECURSO_META_IMPRESSAO[tipo];
-            return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0" style="width: ${70 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
+            return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${70 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
         }).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${Array.from(popsAgrupados.values()).map((grupo, grupoIndex) => `
-                                <tr class="${grupoIndex % 2 === 0 ? 'bg-white' : cores.row}">
-                                    <td class="p-3 border-t border-r ${cores.border} font-semibold ${cores.text} align-top">
-                                        <div class="font-bold">${escapeHtml(grupo.popNames.join(', '))}</div>
-                                        ${grupo.grupo ? `<div class="opacity-70 mt-1" style="font-size: 0.8em;">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
-                                    </td>
-                                    ${tiposRecursosArray.map(tipo => {
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${Array.from(popsAgrupados.values()).map((grupo, grupoIndex) => `
+                                            <tr class="${grupoIndex % 2 === 0 ? 'bg-white' : cores.row}">
+                                                <td class="p-3 border-t border-r ${cores.border} font-semibold ${cores.text} align-top">
+                                                    <div class="font-bold">${escapeHtml(grupo.popNames.join(', '))}</div>
+                                                    ${grupo.grupo ? `<div class="opacity-70 mt-1" style="font-size: 0.9em;">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
+                                                </td>
+                                                ${tiposRecursosArray.map(tipo => {
             const recursos = grupo.recursos[tipo] || [];
             const subtotal = recursos.reduce((acc, item) => acc + (item.custo || 0), 0);
             let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
             if (recursos.length > 0) {
                 cellContent = `<ul class="space-y-1 list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
                 if (options.showSubtotals && subtotal > 0) {
-                    cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right subtotal-text">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
+                    cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right" style="font-size:0.9em;">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
                 }
             }
             return `<td class="p-2 border-t border-r ${cores.border} last:border-r-0 align-top">${cellContent}</td>`;
         }).join('')}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        ${options.showSubtotals && totalDepartamento > 0 ? `
-                        <tfoot>
-                            <tr class="${cores.tableHeader} text-white font-bold">
-                                <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right total-footer">
-                                    TOTAL DO DEPARTAMENTO: ${totalDepartamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                </td>
-                            </tr>
-                        </tfoot>
-                        ` : ''}
-                    </table>
-                </div>`;
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                    ${options.showSubtotals && totalDepartamento > 0 ? `
+                                    <tfoot>
+                                        <tr class="${cores.tableHeader} font-bold text-white">
+                                            <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right">
+                                                TOTAL DO DEPARTAMENTO: ${totalDepartamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                    ` : ''}
+                                </table>
+                            </div>
+                        </div>
 
-        if (dep.observacao) {
-            html += `<div class="mt-4 p-4 rounded-lg border-2 ${cores.border} ${cores.row} shadow-sm"><strong class="${cores.text}">OBSERVAÇÕES:</strong> <span class="ml-2">${escapeHtml(dep.observacao).replace(/\n/g, '<br>')}</span></div>`;
-        }
-        html += `</div>`;
+                        <div class="logo-corner">
+                            <div class="logo-box bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                                LOGO
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     });
 
-    html += '</div>';
     return html;
 };
 
@@ -151,70 +162,83 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                 <style>
                     @page { 
                         size: A4 landscape; 
-                        margin: 1cm;
-                    }
-                    html, body {
-                        height: 100%;
-                        width: 100%;
-                        margin: 0;
-                        padding: 0;
+                        margin: 0; 
                     }
                     body { 
                         font-family: ui-sans-serif, system-ui, sans-serif; 
                         -webkit-print-color-adjust: exact; 
-                        color-adjust: exact;
-                        background-color: #e5e5e5; /* Fundo cinza para ver os limites */
+                        color-adjust: exact; 
                     }
-                    /* INVÓLUCRO PARA FORÇAR CENTRALIZAÇÃO */
-                    #print-wrapper {
+                    .page-container {
+                        width: 100vw;
+                        height: 100vh;
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        box-sizing: border-box;
+                    }
+                    .page-border {
+                        position: relative;
+                        width: calc(100% - 30mm);
+                        height: calc(100% - 30mm);
+                        border: 2px solid #d1d5db;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-sizing: border-box;
+                        /* **ESPAÇAMENTO ENTRE AS BORDAS AJUSTADO AQUI** */
+                        padding: 10px;
+                    }
+                    .content-center {
                         width: 100%;
                         height: 100%;
+                        border-radius: 8px;
+                        padding: 20px;
+                        box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        position: relative;
                     }
-                    /* CONTAINER PRINCIPAL DO CONTEÚDO */
-                    .main-content-container {
-                         max-width: 95%; /* Limita a largura máxima */
-                         flex-shrink: 0;  /* Impede que o flexbox encolha o item */
+                    .table-container {
+                        width: 100%;
+                        font-size: clamp(8px, calc(0.5vw + 0.6vh), 12px);
+                    }
+                    .table-header-text {
+                        font-size: 0.9em !important;
+                    }
+                    .project-name-corner {
+                        position: absolute;
+                        top: 25px;
+                        right: 25px; 
+                        font-size: 22px;
+                        font-weight: 700;
+                        z-index: 10;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .logo-corner {
+                        position: absolute;
+                        bottom: 25px;
+                        left: 25px;
+                        z-index: 10;
+                    }
+                    .logo-box {
+                        width: 80px;
+                        height: 80px;
+                        font-size: 1.1rem;
+                        font-weight: 600;
                     }
                     .page-break { page-break-before: always; }
                     table { border-collapse: collapse; }
-                    th, td {
-                        word-wrap: break-word;
-                        overflow-wrap: break-word;
-                    }
-                    .subtotal-text {
-                        font-size: 0.8em;
-                        color: #4b5563;
-                    }
-                    .total-footer {
-                        font-size: 0.9em;
-                        color: #e5e7eb;
-                    }
-
-                    @media print {
-                        body { background-color: transparent; } /* Remove fundo cinza na impressão final */
-                        .department-report {
-                           page-break-inside: avoid !important;
-                           font-size: 1.1vh;
-                           max-height: 98%; /* Garante que não ultrapasse a área de impressão */
-                           overflow: hidden; /* Esconde qualquer estouro */
-                        }
-                        .shadow-lg, .shadow-sm {
-                            box-shadow: none !important;
-                        }
-                    }
+                    th, td { word-wrap: break-word; overflow-wrap: break-word; }
                 </style>
             </head>
             <body>
-                <div id="print-wrapper">
-                  ${generateStaticHTML(projeto, options)}
-                </div>
+                ${generateStaticHTML(projeto, options)}
                 <script>
-                    window.onload = () => {
-                        setTimeout(() => { window.print(); }, 500);
-                    };
+                    window.onload = () => { setTimeout(() => { window.print(); }, 500); };
                 </script>
             </body>
             </html>`;
@@ -246,9 +270,6 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                             Exibir Totais e Subtotais
                         </Label>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                        Mostra a soma dos custos para cada categoria e o total por departamento.
-                    </p>
                 </div>
                 <DialogFooter>
                     <Button onClick={handlePrint} className="w-full">
