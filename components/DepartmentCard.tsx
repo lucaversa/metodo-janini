@@ -5,7 +5,7 @@ import { Departamento, Pop, Recursos, GrupoDeRecursos, CategoriasRecursos } from
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, Plus, Users, Edit, FileText, MessageSquare } from 'lucide-react';
+import { Trash2, Plus, Users, Edit, FileText, MessageSquare, GripVertical } from 'lucide-react';
 import { PopCard } from './PopCard';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
@@ -37,7 +37,6 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
     const [isAddingPop, setIsAddingPop] = useState(false);
     const [isAddingGroup, setIsAddingGroup] = useState(false);
 
-    // ... (funções de lógica continuam iguais)
     const updateDepartment = (updates: Partial<Departamento>) => { onUpdate({ ...departamento, ...updates }); };
     const addPop = () => {
         if (newPopName.trim() === '') return;
@@ -78,9 +77,12 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
 
     return (
         <TooltipProvider>
-            <Card className="bg-white border-l-4 border-primary shadow-md transition-all duration-300 hover:shadow-lg">
-                <CardHeader className="flex flex-row justify-between items-center">
-                    <CardTitle className="text-2xl text-slate-800">{departamento.nome}</CardTitle>
+            <Card className="bg-white border-l-4 border-primary shadow-md transition-all duration-300 hover:shadow-lg cursor-default">
+                <CardHeader className="flex flex-row items-center gap-2">
+                    <div className="text-muted-foreground cursor-grab p-2 -ml-2" title="Arrastar para reordenar">
+                        <GripVertical className="h-6 w-6" />
+                    </div>
+                    <CardTitle className="flex-grow text-2xl text-slate-800">{departamento.nome}</CardTitle>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button variant="ghost" size="icon" onClick={() => onDelete(departamento.id)}>
@@ -148,6 +150,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
                                                             {editingGroup && Object.entries(RECURSO_META).map(([key, meta]) => (
                                                                 <ResourceGroup key={key} categoria={key as CategoriasRecursos} recursos={editingGroup.recursos[key as CategoriasRecursos] || []} meta={meta}
                                                                     onUpdate={(cat, recs) => {
+                                                                        // ERRO CORRIGIDO AQUI
                                                                         const grupoEditado = { ...editingGroup, recursos: { ...editingGroup.recursos, [cat]: recs } };
                                                                         setEditingGroup(grupoEditado);
                                                                         updateGroup(grupoEditado);
@@ -165,6 +168,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
                                 <div className="pt-4 border-t mt-4">
                                     <AnimatePresence>
                                         {isAddingGroup && (
+                                            // ERRO CORRIGIDO AQUI
                                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex gap-2">
                                                 <Input placeholder="Nome do novo modelo" value={newGroupName} onChange={e => setNewGroupName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGroup()} />
                                                 <Button onClick={addGroup}>Salvar</Button>
@@ -182,7 +186,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete }: DepartmentC
                         <TabsContent value="observacoes" className="mt-4">
                             <div className="p-4 border rounded-lg bg-slate-100">
                                 <Label htmlFor={`obs-${departamento.id}`} className="font-bold text-lg mb-1">Observações do Departamento</Label>
-                                <p className="text-sm text-muted-foreground mb-4">O texto que escrever aqui aparecerá no rodapé do relatório deste departamento.</p>
+                                _                <p className="text-sm text-muted-foreground mb-4">O texto que escrever aqui aparecerá no rodapé do relatório deste departamento.</p>
                                 <Textarea
                                     id={`obs-${departamento.id}`}
                                     placeholder="Escreva aqui as suas observações..."

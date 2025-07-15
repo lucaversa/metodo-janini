@@ -5,12 +5,12 @@ import { Projeto, Departamento } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Plus, X, Printer } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { DepartmentCard } from './DepartmentCard';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
-import { motion, AnimatePresence } from 'framer-motion';
-import { PrintButtonTabular } from './PrintButtonTabular'; // Importar o botão correto
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { PrintButtonTabular } from './PrintButtonTabular';
 
 interface ProjectEditorProps {
     projeto: Projeto;
@@ -23,11 +23,11 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
     const [newDepartmentName, setNewDepartmentName] = useState('');
     const [isAddingDepartment, setIsAddingDepartment] = useState(false);
 
-    // ... (funções de lógica continuam iguais)
     const updateProject = (projetoAtualizado: Projeto) => {
         setEditedProject(projetoAtualizado);
         onUpdate(projetoAtualizado);
     };
+
     const addDepartment = () => {
         if (newDepartmentName.trim() === '') return;
         const newDepartment: Departamento = { id: uuidv4(), nome: newDepartmentName, pops: [], gruposDeRecursos: [] };
@@ -36,9 +36,11 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
         setIsAddingDepartment(false);
         toast.success(`Departamento "${newDepartmentName}" adicionado.`);
     };
+
     const updateDepartment = (depAtualizado: Departamento) => {
         updateProject({ ...editedProject, departamentos: editedProject.departamentos.map(d => d.id === depAtualizado.id ? depAtualizado : d) });
     };
+
     const deleteDepartment = (depId: string) => {
         if (confirm('Tem certeza que deseja apagar este departamento?')) {
             const dep = editedProject.departamentos.find(d => d.id === depId);
@@ -46,6 +48,11 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
             toast.error(`Departamento "${dep?.nome}" apagado.`);
         }
     };
+
+    const handleDepartmentReorder = (newOrder: Departamento[]) => {
+        updateProject({ ...editedProject, departamentos: newOrder });
+    };
+
     const calculateTotalProjeto = () => {
         const recursosUnicos = new Map<string, number>();
         editedProject.departamentos.forEach(dep => {
@@ -70,7 +77,6 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
             <header className="flex-shrink-0 flex justify-between items-center mb-4 pb-4 border-b">
                 <h1 className="text-3xl font-bold text-slate-800">{editedProject.nome}</h1>
                 <div className="flex items-center gap-2">
-                    {/* << APENAS O BOTÃO DE RELATÓRIO TABULAR >> */}
                     <PrintButtonTabular projeto={editedProject} />
                     <Button variant="outline" onClick={onClose}>
                         <X className="mr-2 h-4 w-4" /> Fechar
@@ -78,11 +84,18 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
                 </div>
             </header>
             <div className="flex-grow overflow-y-auto pr-2 space-y-4">
-                <div className="space-y-4">
+                <Reorder.Group axis="y" values={editedProject.departamentos} onReorder={handleDepartmentReorder} className="space-y-4">
                     {editedProject.departamentos.map(dep => (
-                        <DepartmentCard key={dep.id} departamento={dep} onUpdate={updateDepartment} onDelete={deleteDepartment} />
+                        <Reorder.Item key={dep.id} value={dep}>
+                            <DepartmentCard
+                                departamento={dep}
+                                onUpdate={updateDepartment}
+                                onDelete={deleteDepartment}
+                            />
+                        </Reorder.Item>
                     ))}
-                </div>
+                </Reorder.Group>
+
                 <AnimatePresence>
                     {isAddingDepartment && (
                         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
