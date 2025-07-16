@@ -21,13 +21,20 @@ interface PrintOptions {
 
 function escapeHtml(text: string | undefined | null) {
     if (!text) return '';
-    const map: { [key: string]: string } = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, (m) => map[m]);
+    const map: { [key: string]: string } = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+        '/': '&#x2F;'  // Adicionar escape para "/"
+    };
+    return text.replace(/[&<>"'\/]/g, (m) => map[m]);
 }
 
 const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => {
     const coresDepartamentos = [
-        { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-pbg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textColor: '#581c87' },
+        { header: 'bg-purple-600', tableHeader: 'bg-purple-500', row: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textColor: '#581c87' },
         { header: 'bg-blue-600', tableHeader: 'bg-blue-500', row: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', textColor: '#1e3a8a' },
         { header: 'bg-emerald-600', tableHeader: 'bg-emerald-500', row: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-900', textColor: '#065f46' },
         { header: 'bg-rose-600', tableHeader: 'bg-rose-500', row: 'bg-rose-50', border: 'border-rose-300', text: 'text-rose-900', textColor: '#881337' },
@@ -69,22 +76,39 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
             }
         });
 
-        // Converter para array para poder dividir
         const popsArray = Array.from(popsAgrupados.values());
 
-        // Dividir em grupos de no máximo 7 POPs
-        const popsChunks = [];
-        for (let i = 0; i < popsArray.length; i += 7) {
-            popsChunks.push(popsArray.slice(i, i + 7));
-        }
+        // Função para calcular o número de páginas necessárias
+        const calculatePages = (pops: typeof popsArray) => {
+            const MAX_ROWS_PER_PAGE = 6; // Reduzido para garantir espaço adequado da logo
+            return Math.ceil(pops.length / MAX_ROWS_PER_PAGE);
+        };
 
-        // Gerar uma página para cada chunk
-        popsChunks.forEach((chunk, chunkIndex) => {
-            const isFirstChunk = chunkIndex === 0;
-            const isLastChunk = chunkIndex === popsChunks.length - 1;
+        const totalPages = calculatePages(popsArray);
+
+        // Função para dividir POPs em páginas
+        const divideIntoPages = (pops: typeof popsArray, totalPages: number) => {
+            const pages: (typeof popsArray)[] = [];
+            const itemsPerPage = Math.ceil(pops.length / totalPages);
+
+            for (let i = 0; i < totalPages; i++) {
+                const startIndex = i * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, pops.length);
+                pages.push(pops.slice(startIndex, endIndex));
+            }
+
+            return pages;
+        };
+
+        const pages = divideIntoPages(popsArray, totalPages);
+
+        // Gerar cada página
+        pages.forEach((pageData, pageIndex) => {
+            const currentPage = pageIndex + 1;
+            const isLastPage = pageIndex === pages.length - 1;
 
             html += `
-                <div class="page-container ${pageCounter > 0 ? 'page-break' : ''}">
+                <div class="page-container ${pageCounter > 0 ? 'page-break' : ''}" data-dept-index="${depIndex}" data-page-index="${pageIndex}">
                     <div class="page-border">
                         <div class="content-center border-4 ${cores.border}">
                             <div class="project-name-corner" style="color: ${cores.textColor};">
@@ -94,34 +118,33 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                             <div class="table-container">
                                 <header class="${cores.header} p-6 rounded-t-lg text-white text-center border-t-2 border-x-2 ${cores.border}">
                                     <h2 class="text-2xl font-bold tracking-wider">
-                                        ${escapeHtml(dep.nome)}
-                                        ${popsChunks.length > 1 ? ` (${chunkIndex + 1}/${popsChunks.length})` : ''}
+                                        ${escapeHtml(dep.nome)}${totalPages > 1 ? ` (${currentPage}/${totalPages})` : ''}
                                     </h2>
                                 </header>
                                 <div class="overflow-hidden border-x-2 border-b-2 ${cores.border} rounded-b-lg bg-white">
-                                    <table class="w-full table-fixed">
+                                    <table class="w-full table-fixed" id="table-${depIndex}-${pageIndex}">
                                         <thead>
                                             <tr class="${cores.tableHeader}">
                                                 <th class="p-3 font-bold text-white text-left border-r border-white/30 table-header-text" style="width: 20%;">POP</th>
-                                                ${tiposRecursosArray.map(tipo => {
+                                                ${tiposRecursosArray.map((tipo: CategoriasRecursos) => {
                 const meta = RECURSO_META_IMPRESSAO[tipo];
                 return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${80 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
             }).join('')}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${chunk.map((grupo, grupoIndex) => `
+                                            ${pageData.map((grupo, grupoIndex) => `
                                                 <tr class="${grupoIndex % 2 === 0 ? 'bg-white' : cores.row}">
                                                     <td class="p-3 border-t border-r ${cores.border} font-semibold ${cores.text} align-top">
                                                         <div class="font-bold">${escapeHtml(grupo.popNames.join(', '))}</div>
                                                         ${grupo.grupo ? `<div class="opacity-70 mt-1" style="font-size: 0.9em;">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
                                                     </td>
-                                                    ${tiposRecursosArray.map(tipo => {
+                                                    ${tiposRecursosArray.map((tipo: CategoriasRecursos) => {
                 const recursos = grupo.recursos[tipo] || [];
-                const subtotal = recursos.reduce((acc, item) => acc + (item.custo || 0), 0);
+                const subtotal = recursos.reduce((acc: number, item: Recurso) => acc + (item.custo || 0), 0);
                 let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
                 if (recursos.length > 0) {
-                    cellContent = `<ul class="list-none p-0 m-0">${recursos.map(rec => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
+                    cellContent = `<ul class="list-none p-0 m-0">${recursos.map((rec: Recurso) => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
                     if (options.showSubtotals && subtotal > 0) {
                         cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right" style="font-size:0.9em;">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
                     }
@@ -131,7 +154,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                                 </tr>
                                             `).join('')}
                                         </tbody>
-                                        ${options.showSubtotals && totalDepartamento > 0 && isLastChunk ? `
+                                        ${options.showSubtotals && totalDepartamento > 0 && isLastPage ? `
                                         <tfoot>
                                             <tr class="${cores.tableHeader} font-bold text-white">
                                                 <td colspan="${tiposRecursosArray.length + 1}" class="p-3 text-right">
@@ -142,6 +165,20 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                         ` : ''}
                                     </table>
                                 </div>
+                                
+                                ${/* Adicionar observações apenas na última página do departamento */
+                isLastPage && dep.observacao ? `
+                                <div class="observacoes-container mt-4">
+                                    <div class="border-2 ${cores.border} rounded-lg bg-white">
+                                        <div class="${cores.tableHeader} p-3 rounded-t-lg">
+                                            <h3 class="text-lg font-bold text-white">Observações</h3>
+                                        </div>
+                                        <div class="p-4 ${cores.row} rounded-b-lg">
+                                            <div class="text-sm ${cores.text} whitespace-pre-wrap">${escapeHtml(dep.observacao)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
                             </div>
                            <div class="logo-corner">
                                 <div class="logo-box flex items-center justify-center">
@@ -207,7 +244,13 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                     }
                     .table-container {
                         width: 100%;
-                        font-size: 12px; /* Fonte base */
+                        font-size: 12px;
+                        max-height: calc(100vh - 200px); /* Limita a altura da tabela */
+                    }
+                    .observacoes-container {
+                        font-size: 11px;
+                        max-height: 120px; /* Limita a altura das observações */
+                        overflow: hidden;
                     }
                     .project-name-corner {
                         position: absolute; top: 25px; right: 25px;
@@ -215,12 +258,12 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         display: flex; align-items: center;
                     }
                     .logo-corner {
-                        position: absolute; bottom: 0px; left: 25px;
+                        position: absolute; bottom: 15px; left: 25px;
                         z-index: 10;
                     }
                     .logo-box {
-                        width: 170px;  /* De 80px para 120px */
-                        height: 100px; /* De 80px para 100px */
+                        width: 170px;
+                        height: 100px;
                         font-size: 1.1rem;
                         font-weight: 600;
                     }
@@ -239,7 +282,6 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                             const table = page.querySelector('table');
                             if (!table) return;
 
-                            // --- ETAPA 1: ANÁLISE POR COLUNA ---
                             const rows = table.querySelectorAll('tbody tr');
                             if (rows.length === 0) return;
 
@@ -253,12 +295,11 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                                 });
                             });
 
-                            // --- ETAPA 2: APLICAÇÃO DE ESTILOS COM NOVOS LIMITES MAIS AGRESSIVOS ---
                             const COLUMN_THRESHOLDS = [
-                                { limit: 500, size: '7px' },  // Acima de 500 caracteres -> fonte mínima
+                                { limit: 500, size: '7px' },
                                 { limit: 350, size: '8px' },
                                 { limit: 200, size: '9px' },
-                                { limit: 100, size: '10px' }  // Começa a reduzir com apenas 100 chars na coluna
+                                { limit: 100, size: '10px' }
                             ];
 
                             columnCharCounts.forEach((totalChars, columnIndex) => {
@@ -276,18 +317,30 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                                 }
                             });
 
-                            // --- ETAPA 3: VERIFICAÇÃO FINAL DE COLISÃO (SEGURANÇA) ---
-                            const tableContainer = page.querySelector('.table-container');
+                            // Verificação final de colisão com margem de segurança maior
                             const logo = page.querySelector('.logo-corner');
-                           
-                            if (!tableContainer || !logo) return;
-
-                            const tableRect = table.getBoundingClientRect();
-                            const logoRect = logo.getBoundingClientRect();
-                           
-                            if ((tableRect.bottom + 20) > logoRect.top) {
-                                tableContainer.style.fontSize = '11px';
-                                console.warn("Ajuste de segurança geral aplicado para evitar colisão com o logo.");
+                            const tableContainer = page.querySelector('.table-container');
+                            const observacoesContainer = page.querySelector('.observacoes-container');
+                            
+                            if (tableContainer && logo) {
+                                const tableRect = table.getBoundingClientRect();
+                                const logoRect = logo.getBoundingClientRect();
+                                
+                                // Considera também a altura das observações se existir
+                                let bottomOffset = 60;
+                                if (observacoesContainer) {
+                                    const observacoesRect = observacoesContainer.getBoundingClientRect();
+                                    bottomOffset = Math.max(bottomOffset, observacoesRect.height + 60);
+                                }
+                               
+                                // Aumenta a margem de segurança
+                                if ((tableRect.bottom + bottomOffset) > logoRect.top) {
+                                    tableContainer.style.fontSize = '10px';
+                                    if (observacoesContainer) {
+                                        observacoesContainer.style.fontSize = '10px';
+                                    }
+                                    console.warn("Ajuste de segurança geral aplicado para evitar colisão com o logo.");
+                                }
                             }
                         });
                     }
@@ -298,7 +351,7 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                         } catch(e) {
                             console.error("Falha ao ajustar layout de impressão:", e);
                         }
-                        setTimeout(() => { window.print(); }, 250);
+                        setTimeout(() => { window.print(); }, 500);
                     };
                 </script>
             </body>
