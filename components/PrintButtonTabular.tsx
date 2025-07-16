@@ -27,7 +27,7 @@ function escapeHtml(text: string | undefined | null) {
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#039;',
-        '/': '&#x2F;'  // Adicionar escape para "/"
+        '/': '&#x2F;' // Adicionar escape para "/"
     };
     return text.replace(/[&<>"'\/]/g, (m) => map[m]);
 }
@@ -63,7 +63,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
         popsAgrupados.forEach(grupo => {
             if (grupo.recursos) {
                 (Object.keys(grupo.recursos) as CategoriasRecursos[]).forEach(tipo => {
-                    if (grupo.recursos[tipo] && grupo.recursos[tipo].length > 0) tiposRecursosDoDep.add(tipo);
+                    if (grupo.recursos[tipo] && grupo.recursos[tipo]!.length > 0) tiposRecursosDoDep.add(tipo);
                 });
             }
         });
@@ -78,31 +78,27 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
 
         const popsArray = Array.from(popsAgrupados.values());
 
-        // Função para calcular o número de páginas necessárias
         const calculatePages = (pops: typeof popsArray) => {
-            const MAX_ROWS_PER_PAGE = 6; // Reduzido para garantir espaço adequado da logo
-            return Math.ceil(pops.length / MAX_ROWS_PER_PAGE);
+            const MAX_ROWS_PER_PAGE = 6;
+            return Math.ceil(pops.length / MAX_ROWS_PER_PAGE) || 1;
         };
 
         const totalPages = calculatePages(popsArray);
 
-        // Função para dividir POPs em páginas
         const divideIntoPages = (pops: typeof popsArray, totalPages: number) => {
             const pages: (typeof popsArray)[] = [];
+            if (totalPages === 0) return pages;
             const itemsPerPage = Math.ceil(pops.length / totalPages);
-
             for (let i = 0; i < totalPages; i++) {
                 const startIndex = i * itemsPerPage;
                 const endIndex = Math.min(startIndex + itemsPerPage, pops.length);
                 pages.push(pops.slice(startIndex, endIndex));
             }
-
             return pages;
         };
 
         const pages = divideIntoPages(popsArray, totalPages);
 
-        // Gerar cada página
         pages.forEach((pageData, pageIndex) => {
             const currentPage = pageIndex + 1;
             const isLastPage = pageIndex === pages.length - 1;
@@ -128,7 +124,7 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                                 <th class="p-3 font-bold text-white text-left border-r border-white/30 table-header-text" style="width: 20%;">POP</th>
                                                 ${tiposRecursosArray.map((tipo: CategoriasRecursos) => {
                 const meta = RECURSO_META_IMPRESSAO[tipo];
-                return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${80 / tiposRecursosArray.length}%;">${escapeHtml(meta.label)}</th>`
+                return `<th class="p-3 font-bold text-white text-center border-r border-white/30 last:border-r-0 table-header-text" style="width: ${tiposRecursosArray.length > 0 ? (80 / tiposRecursosArray.length) : 80}%;">${escapeHtml(meta?.label)}</th>`
             }).join('')}
                                             </tr>
                                         </thead>
@@ -140,13 +136,19 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                                         ${grupo.grupo ? `<div class="opacity-70 mt-1" style="font-size: 0.9em;">Modelo: ${escapeHtml(grupo.grupo.nome)}</div>` : ''}
                                                     </td>
                                                     ${tiposRecursosArray.map((tipo: CategoriasRecursos) => {
-                const recursos = grupo.recursos[tipo] || [];
+                const recursos = (grupo.recursos && grupo.recursos[tipo]) ? grupo.recursos[tipo]! : [];
                 const subtotal = recursos.reduce((acc: number, item: Recurso) => acc + (item.custo || 0), 0);
                 let cellContent = `<span class="text-gray-400 italic">N/A</span>`;
                 if (recursos.length > 0) {
-                    cellContent = `<ul class="list-none p-0 m-0">${recursos.map((rec: Recurso) => `<li>${escapeHtml(rec.nome)}</li>`).join('')}</ul>`;
-                    if (options.showSubtotals && subtotal > 0) {
-                        cellContent += `<div class="mt-2 pt-1 border-t ${cores.border} font-bold text-right" style="font-size:0.9em;">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
+                    cellContent = `<div class="resource-list">${recursos.map((rec: Recurso) => {
+                        const observacoesHtml = rec.observacoes ? `<div class="resource-observation">${escapeHtml(rec.observacoes)}</div>` : '';
+                        return `<div class="resource-item">
+                                                                            <span class="resource-name">${escapeHtml(rec.nome)}</span>
+                                                                            ${observacoesHtml}
+                                                                        </div>`;
+                    }).join('')}</div>`;
+                    if (options.showSubtotals && subtotal > 0 && tipo !== 'recorrencia') {
+                        cellContent += `<div class="subtotal-row">Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`;
                     }
                 }
                 return `<td class="p-2 border-t border-r ${cores.border} last:border-r-0 align-top">${cellContent}</td>`;
@@ -165,30 +167,22 @@ const generateStaticHTML = (projeto: Projeto, options: PrintOptions): string => 
                                         ` : ''}
                                     </table>
                                 </div>
-                                
-                                ${/* Adicionar observações apenas na última página do departamento */
-                isLastPage && dep.observacao ? `
-                                <div class="observacoes-container mt-4">
-                                    <div class="border-2 ${cores.border} rounded-lg bg-white">
-                                        <div class="${cores.tableHeader} p-3 rounded-t-lg">
-                                            <h3 class="text-lg font-bold text-white">Observações</h3>
-                                        </div>
-                                        <div class="p-4 ${cores.row} rounded-b-lg">
-                                            <div class="text-sm ${cores.text} whitespace-pre-wrap">${escapeHtml(dep.observacao)}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                ` : ''}
                             </div>
-                           <div class="logo-corner">
+                            <div class="logo-corner">
                                 <div class="logo-box flex items-center justify-center">
                                     <img src="/logo.png" alt="Logo da Empresa" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                 </div>
                             </div>
-                        </div>
+                            
+                            ${isLastPage && dep.observacao ? `
+                            <div class="observacoes-container">
+                                <h3 class="font-bold text-gray-700">Observações:</h3>
+                                <p class="text-gray-600 whitespace-pre-wrap">${escapeHtml(dep.observacao)}</p>
+                            </div>
+                            ` : ''}
+                            </div>
                     </div>
                 </div>`;
-
             pageCounter++;
         });
     });
@@ -216,60 +210,36 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                 <title>Relatório - ${escapeHtml(projeto.nome)}</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
-                    @page {
-                        size: A4 landscape;
-                        margin: 0;
-                    }
-                    body {
-                        font-family: ui-sans-serif, system-ui, sans-serif;
-                        -webkit-print-color-adjust: exact;
-                        color-adjust: exact;
-                    }
-                    .page-container {
-                        width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
-                    }
-                    .page-border {
-                        position: relative;
-                        width: calc(100% - 30mm); height: calc(100% - 30mm);
-                        border: 2px solid #d1d5db;
-                        border-radius: 12px;
-                        display: flex; align-items: center; justify-content: center; box-sizing: border-box;
-                        padding: 10px;
-                    }
-                    .content-center {
-                        width: 100%; height: 100%; border-radius: 8px;
-                        padding: 20px; box-sizing: border-box;
-                        display: flex; flex-direction: column; justify-content: center;
-                        position: relative;
-                    }
-                    .table-container {
-                        width: 100%;
-                        font-size: 12px;
-                        max-height: calc(100vh - 200px); /* Limita a altura da tabela */
-                    }
-                    .observacoes-container {
-                        font-size: 11px;
-                        max-height: 120px; /* Limita a altura das observações */
-                        overflow: hidden;
-                    }
-                    .project-name-corner {
-                        position: absolute; top: 25px; right: 25px;
-                        font-size: 22px; font-weight: 700; z-index: 10;
-                        display: flex; align-items: center;
-                    }
-                    .logo-corner {
-                        position: absolute; bottom: 15px; left: 25px;
-                        z-index: 10;
-                    }
-                    .logo-box {
-                        width: 170px;
-                        height: 100px;
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                    }
+                    @page { size: A4 landscape; margin: 0; }
+                    body { font-family: ui-sans-serif, system-ui, sans-serif; -webkit-print-color-adjust: exact; color-adjust: exact; }
+                    .page-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+                    .page-border { position: relative; width: calc(100% - 30mm); height: calc(100% - 30mm); border: 2px solid #d1d5db; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 10px; }
+                    .content-center { width: 100%; height: 100%; border-radius: 8px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; position: relative; }
+                    .table-container { width: 100%; font-size: 12px; max-height: calc(100vh - 200px); }
+                    .project-name-corner { position: absolute; top: 25px; right: 25px; font-size: 22px; font-weight: 700; z-index: 10; display: flex; align-items: center; }
+                    .logo-corner { position: absolute; bottom: 15px; left: 25px; z-index: 10; }
+                    .logo-box { width: 170px; height: 100px; font-size: 1.1rem; font-weight: 600; }
                     .page-break { page-break-before: always; }
                     table { border-collapse: collapse; }
                     th, td { word-wrap: break-word; overflow-wrap: break-word; }
+                    .resource-list { display: flex; flex-direction: column; gap: 4px; }
+                    .resource-item { display: flex; flex-direction: column; padding-bottom: 4px; border-bottom: 1px solid #f3f4f6; }
+                    .resource-item:last-child { border-bottom: none; padding-bottom: 0; }
+                    .resource-name { text-align: left; font-size: 1em; line-height: 1.3; }
+                    .resource-observation { font-size: 0.9em; color: #6b7280; font-style: italic; padding-top: 3px; white-space: pre-wrap; word-wrap: break-word; }
+                    .subtotal-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid #e5e7eb; font-weight: bold; text-align: right; font-size: 0.95em; }
+                    
+                    /* ### MODIFICAÇÃO: Aumentar tamanho do texto das observações ### */
+                    .observacoes-container {
+                        position: absolute;
+                        bottom: 15px;
+                        right: 25px;
+                        z-index: 10;
+                        max-width: 45%;
+                        font-size: 14px; /* Aumentado de 10px para 14px */
+                        text-align: right;
+                    }
+                    /* ### FIM DA MODIFICAÇÃO ### */
                 </style>
             </head>
             <body>
@@ -277,7 +247,6 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                 <script>
                     function adjustLayoutDynamically() {
                         const pages = document.querySelectorAll('.page-container');
-
                         pages.forEach(page => {
                             const table = page.querySelector('table');
                             if (!table) return;
@@ -287,21 +256,18 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
 
                             const numColumns = rows[0].querySelectorAll('td').length;
                             const columnCharCounts = Array(numColumns).fill(0);
-
                             rows.forEach(row => {
                                 const cells = row.querySelectorAll('td');
                                 cells.forEach((cell, index) => {
                                     columnCharCounts[index] += cell.innerText.length;
                                 });
                             });
-
                             const COLUMN_THRESHOLDS = [
                                 { limit: 500, size: '7px' },
                                 { limit: 350, size: '8px' },
                                 { limit: 200, size: '9px' },
                                 { limit: 100, size: '10px' }
                             ];
-
                             columnCharCounts.forEach((totalChars, columnIndex) => {
                                 for (const threshold of COLUMN_THRESHOLDS) {
                                     if (totalChars > threshold.limit) {
@@ -316,35 +282,8 @@ export const PrintButtonTabular: React.FC<PrintButtonTabularProps> = ({ projeto,
                                     }
                                 }
                             });
-
-                            // Verificação final de colisão com margem de segurança maior
-                            const logo = page.querySelector('.logo-corner');
-                            const tableContainer = page.querySelector('.table-container');
-                            const observacoesContainer = page.querySelector('.observacoes-container');
-                            
-                            if (tableContainer && logo) {
-                                const tableRect = table.getBoundingClientRect();
-                                const logoRect = logo.getBoundingClientRect();
-                                
-                                // Considera também a altura das observações se existir
-                                let bottomOffset = 60;
-                                if (observacoesContainer) {
-                                    const observacoesRect = observacoesContainer.getBoundingClientRect();
-                                    bottomOffset = Math.max(bottomOffset, observacoesRect.height + 60);
-                                }
-                               
-                                // Aumenta a margem de segurança
-                                if ((tableRect.bottom + bottomOffset) > logoRect.top) {
-                                    tableContainer.style.fontSize = '10px';
-                                    if (observacoesContainer) {
-                                        observacoesContainer.style.fontSize = '10px';
-                                    }
-                                    console.warn("Ajuste de segurança geral aplicado para evitar colisão com o logo.");
-                                }
-                            }
                         });
                     }
-
                     window.onload = () => {
                         try {
                             adjustLayoutDynamically();

@@ -1,22 +1,20 @@
 // types/index.ts
+import { Recorrencia } from './recorrencia';
+
 export type Recurso = {
     id: string;
     nome: string;
     custo: number;
+    observacoes?: string; // Campo para observações
 };
 
-export type CategoriasRecursos = 'pessoas' | 'documentos' | 'equipamentos' | 'sistemas' | 'consumiveis' | 'locais';
+// Categoria 'recorrencia' adicionada
+export type CategoriasRecursos = 'pessoas' | 'documentos' | 'equipamentos' | 'sistemas' | 'consumiveis' | 'locais' | 'recorrencia';
 
 export type Recursos = {
-    pessoas: Recurso[];
-    documentos: Recurso[];
-    equipamentos: Recurso[];
-    sistemas: Recurso[];
-    consumiveis: Recurso[];
-    locais: Recurso[];
+    [key in CategoriasRecursos]?: Recurso[];
 };
 
-// NOVO: Define um modelo de recursos reutilizável
 export type GrupoDeRecursos = {
     id: string;
     nome: string;
@@ -26,7 +24,6 @@ export type GrupoDeRecursos = {
 export type Pop = {
     id: string;
     nome: string;
-    // MODIFICADO: O POP agora pode ter um ID de um grupo ou os seus próprios recursos
     grupoRecursosId?: string | null;
     recursos: Recursos;
 };
@@ -36,7 +33,7 @@ export type Departamento = {
     nome: string;
     pops: Pop[];
     gruposDeRecursos: GrupoDeRecursos[];
-    observacao?: string; // << NOVO: Campo para observações
+    observacao?: string;
 };
 
 export type Projeto = {
