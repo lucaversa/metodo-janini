@@ -1,5 +1,5 @@
 // components/RecorrenciaSelector.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,10 +17,12 @@ const dateToInputFormat = (date?: Date): string => {
     if (!date) return '';
     try {
         return new Date(date).toISOString().split('T')[0];
-    } catch (e) {
+    } catch {
         return '';
     }
 };
+
+type UnidadeIntervalo = 'dias' | 'semanas' | 'meses' | 'anos';
 
 export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorrencia, onChange }) => {
     const [tipo, setTipo] = useState<TipoRecorrencia>(recorrencia?.tipo || TipoRecorrencia.UNICA);
@@ -33,7 +35,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
     const [diaMes, setDiaMes] = useState(recorrencia?.diaMes || 1);
     const [datasEspecificas, setDatasEspecificas] = useState<Date[]>(recorrencia?.datasEspecificas?.map(d => new Date(d)) || []);
     const [intervalo, setIntervalo] = useState(recorrencia?.intervalo || 1);
-    const [unidadeIntervalo, setUnidadeIntervalo] = useState<'dias' | 'semanas' | 'meses' | 'anos'>(recorrencia?.unidadeIntervalo || 'dias');
+    const [unidadeIntervalo, setUnidadeIntervalo] = useState<UnidadeIntervalo>(recorrencia?.unidadeIntervalo || 'dias');
     const [novaData, setNovaData] = useState('');
 
     const diasSemanaOpcoes = [
@@ -59,7 +61,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
             unidadeIntervalo: tipo === TipoRecorrencia.PERSONALIZADA ? unidadeIntervalo : undefined,
         };
         onChange(finalRec);
-    }, [tipo, diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo, observacoes, horario, dataInicio, dataFim, anoFim]);
+    }, [tipo, diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo, observacoes, horario, dataInicio, dataFim, anoFim, onChange, recorrencia]);
 
     const handleDiaSemanaChange = (dia: number, checked: boolean) => {
         const novosDias = checked ? [...diasSemana, dia].sort((a, b) => a - b) : diasSemana.filter(d => d !== dia);
@@ -91,7 +93,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
             case TipoRecorrencia.DATAS_ESPECIFICAS:
                 return (<div className="space-y-2"> <Label className="text-sm font-medium">Datas específicas:</Label> <div className="flex gap-2"> <Input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} className="flex-1" /> <Button onClick={adicionarDataEspecifica} size="icon"><Plus className="h-4 w-4" /></Button> </div> {datasEspecificas.length > 0 && (<div className="max-h-32 overflow-y-auto space-y-1 p-2 bg-slate-100 rounded"> {datasEspecificas.map((data, index) => (<div key={index} className="flex items-center justify-between bg-white p-2 rounded text-sm"> <span>{data.toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span> <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removerDataEspecifica(index)}><X className="h-4 w-4" /></Button> </div>))} </div>)} </div>);
             case TipoRecorrencia.PERSONALIZADA:
-                return (<div className="space-y-2"> <Label className="text-sm font-medium">Intervalo personalizado:</Label> <div className="flex gap-2"> <Input type="number" min="1" value={intervalo} onChange={(e) => setIntervalo(parseInt(e.target.value) || 1)} className="w-24" /> <Select value={unidadeIntervalo} onValueChange={(value) => setUnidadeIntervalo(value as any)}> <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger> <SelectContent> <SelectItem value="dias">Dias</SelectItem> <SelectItem value="semanas">Semanas</SelectItem> <SelectItem value="meses">Meses</SelectItem> <SelectItem value="anos">Anos</SelectItem> </SelectContent> </Select> </div> </div>);
+                return (<div className="space-y-2"> <Label className="text-sm font-medium">Intervalo personalizado:</Label> <div className="flex gap-2"> <Input type="number" min="1" value={intervalo} onChange={(e) => setIntervalo(parseInt(e.target.value) || 1)} className="w-24" /> <Select value={unidadeIntervalo} onValueChange={(value) => setUnidadeIntervalo(value as UnidadeIntervalo)}> <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger> <SelectContent> <SelectItem value="dias">Dias</SelectItem> <SelectItem value="semanas">Semanas</SelectItem> <SelectItem value="meses">Meses</SelectItem> <SelectItem value="anos">Anos</SelectItem> </SelectContent> </Select> </div> </div>);
             default: return null;
         }
     };

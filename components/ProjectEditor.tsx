@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Plus, X, FilePenLine, GripVertical, Building2, TrendingUp, Layers, FileText } from 'lucide-react';
+import { Plus, X, FilePenLine, Building2, TrendingUp, Layers } from 'lucide-react';
 import { DepartmentCard } from './DepartmentCard';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, Reorder } from 'framer-motion';
 import { PrintButtonTabular } from './PrintButtonTabular';
 
 interface ProjectEditorProps {
@@ -179,7 +179,7 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
                                 </div>
                             </div>
                             <h2 className="text-2xl font-bold text-slate-800 mb-2">Nenhum departamento ainda</h2>
-                            <p className="text-slate-600 max-w-md mx-auto">Clique em "Novo Departamento" para começar a estruturar seu projeto.</p>
+                            <p className="text-slate-600 max-w-md mx-auto">Clique em &quot;Novo Departamento&quot; para começar a estruturar seu projeto.</p>
                         </Card>
                     ) : (
                         <Reorder.Group axis="y" values={editedProject.departamentos} onReorder={handleDepartmentReorder} className="space-y-4">
