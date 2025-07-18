@@ -1,5 +1,5 @@
 // components/RecorrenciaSelector.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,35 +27,45 @@ const dateToInputFormat = (date?: Date): string => {
 type UnidadeIntervalo = 'dias' | 'semanas' | 'meses' | 'anos';
 
 export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorrencia, onChange }) => {
+    // Flag para evitar loops infinitos
+    const isInitializing = useRef(true);
+
     // O estado interno é inicializado com as props, mas depois vive de forma independente.
-    const [tipo, setTipo] = useState<TipoRecorrencia>(TipoRecorrencia.UNICA);
-    const [horario, setHorario] = useState('');
-    const [observacoes, setObservacoes] = useState('');
-    const [dataInicio, setDataInicio] = useState('');
-    const [dataFim, setDataFim] = useState('');
-    const [anoFim, setAnoFim] = useState(new Date().getFullYear() + 1);
-    const [diasSemana, setDiasSemana] = useState<number[]>([]);
-    const [diaMes, setDiaMes] = useState(1);
-    const [datasEspecificas, setDatasEspecificas] = useState<Date[]>([]);
-    const [intervalo, setIntervalo] = useState(1);
-    const [unidadeIntervalo, setUnidadeIntervalo] = useState<UnidadeIntervalo>('dias');
+    const [tipo, setTipo] = useState<TipoRecorrencia>(recorrencia?.tipo || TipoRecorrencia.UNICA);
+    const [horario, setHorario] = useState(recorrencia?.horario || '');
+    const [observacoes, setObservacoes] = useState(recorrencia?.observacoes || '');
+    const [dataInicio, setDataInicio] = useState(dateToInputFormat(recorrencia?.dataInicio));
+    const [dataFim, setDataFim] = useState(dateToInputFormat(recorrencia?.dataFim));
+    const [anoFim, setAnoFim] = useState(recorrencia?.anoFim || new Date().getFullYear() + 1);
+    const [diasSemana, setDiasSemana] = useState<number[]>(recorrencia?.diasSemana || []);
+    const [diaMes, setDiaMes] = useState(recorrencia?.diaMes || 1);
+    const [datasEspecificas, setDatasEspecificas] = useState<Date[]>(recorrencia?.datasEspecificas?.map(d => new Date(d)) || []);
+    const [intervalo, setIntervalo] = useState(recorrencia?.intervalo || 1);
+    const [unidadeIntervalo, setUnidadeIntervalo] = useState<UnidadeIntervalo>(recorrencia?.unidadeIntervalo || 'dias');
     const [novaData, setNovaData] = useState('');
 
-    // Efeito para sincronizar o estado interno quando a prop `recorrencia` externa muda.
-    // Isso garante que, se o pai enviar um novo objeto, o formulário seja atualizado.
+    // Efeito para sincronizar apenas na inicialização ou quando o ID da recorrência muda
     useEffect(() => {
-        setTipo(recorrencia?.tipo || TipoRecorrencia.UNICA);
-        setHorario(recorrencia?.horario || '');
-        setObservacoes(recorrencia?.observacoes || '');
-        setDataInicio(dateToInputFormat(recorrencia?.dataInicio));
-        setDataFim(dateToInputFormat(recorrencia?.dataFim));
-        setAnoFim(recorrencia?.anoFim || new Date().getFullYear() + 1);
-        setDiasSemana(recorrencia?.diasSemana || []);
-        setDiaMes(recorrencia?.diaMes || 1);
-        setDatasEspecificas(recorrencia?.datasEspecificas?.map(d => new Date(d)) || []);
-        setIntervalo(recorrencia?.intervalo || 1);
-        setUnidadeIntervalo(recorrencia?.unidadeIntervalo || 'dias');
-    }, [recorrencia]);
+        if (isInitializing.current) {
+            isInitializing.current = false;
+            return;
+        }
+
+        // Só atualiza se o ID da recorrência mudou (nova recorrência)
+        if (recorrencia?.id !== undefined) {
+            setTipo(recorrencia?.tipo || TipoRecorrencia.UNICA);
+            setHorario(recorrencia?.horario || '');
+            setObservacoes(recorrencia?.observacoes || '');
+            setDataInicio(dateToInputFormat(recorrencia?.dataInicio));
+            setDataFim(dateToInputFormat(recorrencia?.dataFim));
+            setAnoFim(recorrencia?.anoFim || new Date().getFullYear() + 1);
+            setDiasSemana(recorrencia?.diasSemana || []);
+            setDiaMes(recorrencia?.diaMes || 1);
+            setDatasEspecificas(recorrencia?.datasEspecificas?.map(d => new Date(d)) || []);
+            setIntervalo(recorrencia?.intervalo || 1);
+            setUnidadeIntervalo(recorrencia?.unidadeIntervalo || 'dias');
+        }
+    }, [recorrencia?.id]); // Apenas quando o ID muda
 
     const diasSemanaOpcoes = [
         { value: 0, label: 'Domingo' }, { value: 1, label: 'Segunda' }, { value: 2, label: 'Terça' },
@@ -63,9 +73,11 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
         { value: 6, label: 'Sábado' }
     ];
 
-    // Este useEffect agora constrói o objeto de recorrência e chama onChange
+    // Este useEffect constrói o objeto de recorrência e chama onChange
     // sempre que qualquer um dos estados internos mudar.
     useEffect(() => {
+        if (isInitializing.current) return; // Não executa na inicialização
+
         const finalRec: Recorrencia = {
             ...recorrencia, // Preserva outras propriedades como o ID
             tipo,
@@ -85,7 +97,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
     }, [
         tipo, horario, observacoes, dataInicio, dataFim, anoFim,
         diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo,
-        onChange, recorrencia // Depender da prop aqui é necessário para preservar o ID, mas o loop é evitado pelo primeiro useEffect
+        onChange, recorrencia?.id // Manter apenas o ID como dependência
     ]);
 
     const handleDiaSemanaChange = (dia: number, checked: boolean) => {
@@ -121,6 +133,22 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
                 return (<div className="space-y-2"> <Label className="text-sm font-medium">Intervalo personalizado:</Label> <div className="flex gap-2"> <Input type="number" min="1" value={intervalo} onChange={(e) => setIntervalo(parseInt(e.target.value) || 1)} className="w-24" /> <Select value={unidadeIntervalo} onValueChange={(value) => setUnidadeIntervalo(value as UnidadeIntervalo)}> <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger> <SelectContent> <SelectItem value="dias">Dias</SelectItem> <SelectItem value="semanas">Semanas</SelectItem> <SelectItem value="meses">Meses</SelectItem> <SelectItem value="anos">Anos</SelectItem> </SelectContent> </Select> </div> </div>);
             default: return null;
         }
+    };
+
+    // Criar o objeto de recorrência atual para o preview
+    const recorrenciaAtual: Recorrencia = {
+        ...recorrencia,
+        tipo,
+        horario,
+        observacoes,
+        dataInicio: dataInicio ? new Date(`${dataInicio}T00:00:00Z`) : undefined,
+        dataFim: dataFim ? new Date(`${dataFim}T00:00:00Z`) : undefined,
+        anoFim,
+        diasSemana,
+        diaMes,
+        datasEspecificas,
+        intervalo,
+        unidadeIntervalo
     };
 
     return (
@@ -172,7 +200,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
 
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 text-sm font-medium text-blue-900"><Clock className="h-4 w-4" /><span>Preview da recorrência:</span></div>
-                <div className="text-sm text-blue-700 mt-1 font-semibold">{formatarRecorrencia({ ...recorrencia, tipo, horario, observacoes, dataInicio: dataInicio ? new Date(`${dataInicio}T00:00:00Z`) : undefined, dataFim: dataFim ? new Date(`${dataFim}T00:00:00Z`) : undefined, anoFim, diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo })}</div>
+                <div className="text-sm text-blue-700 mt-1 font-semibold">{formatarRecorrencia(recorrenciaAtual)}</div>
             </div>
         </div>
     );
