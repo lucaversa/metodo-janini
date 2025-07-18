@@ -1,5 +1,5 @@
 // components/RecorrenciaSelector.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,9 @@ interface RecorrenciaSelectorProps {
 const dateToInputFormat = (date?: Date): string => {
     if (!date) return '';
     try {
-        return new Date(date).toISOString().split('T')[0];
+        // Garante que a data seja tratada como UTC para evitar problemas de fuso horário
+        const d = new Date(date);
+        return new Date(d.getTime() + d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     } catch {
         return '';
     }
@@ -44,24 +46,29 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
         { value: 6, label: 'Sábado' }
     ];
 
+    // Usamos useMemo para criar o objeto finalRec apenas quando uma de suas dependências mudar.
+    const finalRec = useMemo((): Recorrencia => ({
+        ...recorrencia,
+        tipo,
+        horario,
+        observacoes,
+        dataInicio: dataInicio ? new Date(`${dataInicio}T00:00:00Z`) : undefined, // Usar Z para indicar UTC
+        dataFim: dataFim ? new Date(`${dataFim}T00:00:00Z`) : undefined, // Usar Z para indicar UTC
+        anoFim: tipo === TipoRecorrencia.ANUAL ? anoFim : undefined,
+        descricao: RECORRENCIA_OPCOES[tipo as keyof typeof RECORRENCIA_OPCOES].descricao,
+        diasSemana: tipo === TipoRecorrencia.SEMANAL ? diasSemana : undefined,
+        diaMes: tipo === TipoRecorrencia.MENSAL ? diaMes : undefined,
+        datasEspecificas: tipo === TipoRecorrencia.DATAS_ESPECIFICAS ? datasEspecificas : undefined,
+        intervalo: tipo === TipoRecorrencia.PERSONALIZADA ? intervalo : undefined,
+        unidadeIntervalo: tipo === TipoRecorrencia.PERSONALIZADA ? unidadeIntervalo : undefined,
+    }), [recorrencia, tipo, horario, observacoes, dataInicio, dataFim, anoFim, diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo]);
+
+
+    // Este useEffect agora só chama onChange quando o objeto 'finalRec' realmente muda.
     useEffect(() => {
-        const finalRec: Recorrencia = {
-            ...recorrencia,
-            tipo,
-            horario,
-            observacoes,
-            dataInicio: dataInicio ? new Date(`${dataInicio}T00:00:00`) : undefined,
-            dataFim: dataFim ? new Date(`${dataFim}T00:00:00`) : undefined,
-            anoFim: tipo === TipoRecorrencia.ANUAL ? anoFim : undefined,
-            descricao: RECORRENCIA_OPCOES[tipo as keyof typeof RECORRENCIA_OPCOES].descricao,
-            diasSemana: tipo === TipoRecorrencia.SEMANAL ? diasSemana : undefined,
-            diaMes: tipo === TipoRecorrencia.MENSAL ? diaMes : undefined,
-            datasEspecificas: tipo === TipoRecorrencia.DATAS_ESPECIFICAS ? datasEspecificas : undefined,
-            intervalo: tipo === TipoRecorrencia.PERSONALIZADA ? intervalo : undefined,
-            unidadeIntervalo: tipo === TipoRecorrencia.PERSONALIZADA ? unidadeIntervalo : undefined,
-        };
         onChange(finalRec);
-    }, [tipo, diasSemana, diaMes, datasEspecificas, intervalo, unidadeIntervalo, observacoes, horario, dataInicio, dataFim, anoFim, onChange, recorrencia]);
+    }, [finalRec, onChange]);
+
 
     const handleDiaSemanaChange = (dia: number, checked: boolean) => {
         const novosDias = checked ? [...diasSemana, dia].sort((a, b) => a - b) : diasSemana.filter(d => d !== dia);
@@ -70,7 +77,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
 
     const adicionarDataEspecifica = () => {
         if (novaData) {
-            const data = new Date(`${novaData}T00:00:00`);
+            const data = new Date(`${novaData}T00:00:00Z`); // Usar Z para indicar UTC
             if (!isNaN(data.getTime())) {
                 setDatasEspecificas([...datasEspecificas, data].sort((a, b) => a.getTime() - b.getTime()));
                 setNovaData('');
@@ -147,7 +154,7 @@ export const RecorrenciaSelector: React.FC<RecorrenciaSelectorProps> = ({ recorr
 
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 text-sm font-medium text-blue-900"><Clock className="h-4 w-4" /><span>Preview da recorrência:</span></div>
-                <div className="text-sm text-blue-700 mt-1 font-semibold">{formatarRecorrencia(recorrencia)}</div>
+                <div className="text-sm text-blue-700 mt-1 font-semibold">{formatarRecorrencia(finalRec)}</div>
             </div>
         </div>
     );
