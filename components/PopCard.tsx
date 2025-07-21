@@ -39,11 +39,11 @@ export function PopCard({ pop, gruposDisponiveis, onUpdate, onDelete }: PopCardP
 
     return (
         <Card className="mb-2 bg-white hover:bg-slate-50 transition-colors">
-            <CardHeader className="flex flex-row justify-between items-center p-3">
-                <CardTitle className="text-base font-semibold text-slate-700">{pop.nome}</CardTitle>
-                <div className="flex items-center gap-2">
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 gap-3 sm:gap-2">
+                <CardTitle className="text-base font-semibold text-slate-700 w-full sm:w-auto">{pop.nome}</CardTitle>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
                     <Select onValueChange={handleGroupChange} value={pop.grupoRecursosId || 'individual'}>
-                        <SelectTrigger className="w-[250px] bg-white">
+                        <SelectTrigger className="w-full max-w-[250px] min-w-[120px] bg-white">
                             <SelectValue placeholder="Selecione um grupo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -56,15 +56,17 @@ export function PopCard({ pop, gruposDisponiveis, onUpdate, onDelete }: PopCardP
                     {isIndividual && (
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm"><Edit className="mr-2 h-4 w-4" />Editar Recursos</Button>
+                                <Button variant="outline" size="sm" className="hidden sm:flex"><Edit className="mr-2 h-4 w-4" />Editar Recursos</Button>
+                            </DialogTrigger>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="flex sm:hidden px-2"><Edit className="h-4 w-4" /></Button>
                             </DialogTrigger>
 
-                            {/* <<<<<<< A MUDANÇA ESTÁ AQUI: USANDO STYLE >>>>>>> */}
-                            <DialogContent style={{ width: '90vw', maxWidth: '1400px' }} className="h-[90vh] flex flex-col">
-                                <DialogHeader>
-                                    <DialogTitle>Editando Recursos de: {pop.nome}</DialogTitle>
+                            <DialogContent className="w-[95vw] sm:w-[90vw] max-w-[1400px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
+                                <DialogHeader className="flex-shrink-0">
+                                    <DialogTitle className="text-lg sm:text-xl">Editando Recursos de: {pop.nome}</DialogTitle>
                                 </DialogHeader>
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto p-1 flex-grow">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 overflow-y-auto p-1 flex-grow">
                                     {Object.entries(RECURSO_META).map(([key, meta]) => (
                                         <ResourceGroup
                                             key={key}
@@ -78,7 +80,7 @@ export function PopCard({ pop, gruposDisponiveis, onUpdate, onDelete }: PopCardP
                             </DialogContent>
                         </Dialog>
                     )}
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(pop.id)}>
+                    <Button variant="ghost" size="icon" className="min-h-[44px] hover:bg-red-50" onClick={() => onDelete(pop.id)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                 </div>

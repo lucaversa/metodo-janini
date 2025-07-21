@@ -210,6 +210,8 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                     size="icon"
 
+                                    className="min-h-[44px] hover:bg-red-50"
+
                                     onClick={(e) => {
 
                                         e.stopPropagation();
@@ -270,21 +272,21 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                     <TabsList className="grid w-full grid-cols-3 bg-slate-100 h-auto p-1">
 
-                                        <TabsTrigger value="pops" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
+                                        <TabsTrigger value="pops" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 sm:py-3 transition-all duration-300 min-h-[44px]">
 
-                                            <div className="flex items-center gap-2"><FileText size={18} />POPs</div>
-
-                                        </TabsTrigger>
-
-                                        <TabsTrigger value="modelos" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
-
-                                            <div className="flex items-center gap-2"><Users size={18} />Modelos</div>
+                                            <div className="flex items-center gap-1 sm:gap-2"><FileText size={16} className="sm:w-[18px] sm:h-[18px]" /><span className="text-xs sm:text-sm">POPs</span></div>
 
                                         </TabsTrigger>
 
-                                        <TabsTrigger value="observacoes" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 transition-all duration-300">
+                                        <TabsTrigger value="modelos" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 sm:py-3 transition-all duration-300 min-h-[44px]">
 
-                                            <div className="flex items-center gap-2"><MessageSquare size={18} />Observações</div>
+                                            <div className="flex items-center gap-1 sm:gap-2"><Users size={16} className="sm:w-[18px] sm:h-[18px]" /><span className="text-xs sm:text-sm">Modelos</span></div>
+
+                                        </TabsTrigger>
+
+                                        <TabsTrigger value="observacoes" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 sm:py-3 transition-all duration-300 min-h-[44px]">
+
+                                            <div className="flex items-center gap-1 sm:gap-2"><MessageSquare size={16} className="sm:w-[18px] sm:h-[18px]" /><span className="text-xs sm:text-sm">Obs</span></div>
 
                                         </TabsTrigger>
 
@@ -328,7 +330,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                 {!isAddingPop && (
 
-                                                    <Button onClick={() => setIsAddingPop(true)} variant="outline" className="w-full border-dashed"><Plus className="mr-2 h-4 w-4" /> Adicionar POP</Button>
+                                                    <Button onClick={() => setIsAddingPop(true)} variant="outline" className="w-full border-dashed min-h-[44px]"><Plus className="mr-2 h-4 w-4" /> Adicionar POP</Button>
 
                                                 )}
 
@@ -360,15 +362,18 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                                 <DialogTrigger asChild>
 
-                                                                    <Button variant="outline" size="sm" onClick={() => setEditingGroup(grupo)}><Edit className="mr-2 h-4 w-4" />Editar Modelo</Button>
+                                                                    <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => setEditingGroup(grupo)}><Edit className="mr-2 h-4 w-4" />Editar Modelo</Button>
+                                                                </DialogTrigger>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="flex sm:hidden px-2" onClick={() => setEditingGroup(grupo)}><Edit className="h-4 w-4" /></Button>
 
                                                                 </DialogTrigger>
 
-                                                                <DialogContent style={{ width: '90vw', maxWidth: '1400px' }} className="h-[90vh] flex flex-col">
+                                                                <DialogContent className="w-[95vw] sm:w-[90vw] max-w-[1400px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
 
-                                                                    <DialogHeader><DialogTitle>Editando Modelo: {editingGroup?.nome}</DialogTitle></DialogHeader>
+                                                                    <DialogHeader className="flex-shrink-0"><DialogTitle className="text-lg sm:text-xl">Editando Modelo: {editingGroup?.nome}</DialogTitle></DialogHeader>
 
-                                                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto p-1 flex-grow">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 overflow-y-auto p-1 flex-grow">
 
                                                                         {editingGroup && Object.entries(RECURSO_META).map(([key, meta]) => (
 
@@ -394,7 +399,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                             </Dialog>
 
-                                                            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => deleteGroup(grupo.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button></TooltipTrigger><TooltipContent><p>Apagar Modelo</p></TooltipContent></Tooltip>
+                                                            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="min-h-[44px] hover:bg-red-50" onClick={() => deleteGroup(grupo.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button></TooltipTrigger><TooltipContent><p>Apagar Modelo</p></TooltipContent></Tooltip>
 
                                                         </div>
 
@@ -426,7 +431,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                 {!isAddingGroup && (
 
-                                                    <Button onClick={() => setIsAddingGroup(true)} variant="outline" className="w-full border-dashed"><Plus className="mr-2 h-4 w-4" /> Criar Modelo</Button>
+                                                    <Button onClick={() => setIsAddingGroup(true)} variant="outline" className="w-full border-dashed min-h-[44px]"><Plus className="mr-2 h-4 w-4" /> Criar Modelo</Button>
 
                                                 )}
 

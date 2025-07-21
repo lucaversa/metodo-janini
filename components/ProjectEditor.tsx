@@ -97,23 +97,23 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
         <div className="h-screen w-full flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
             {/* Header com gradiente e informações principais */}
             <header className="flex-shrink-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white shadow-lg">
-                <div className="container mx-auto p-6">
+                <div className="container mx-auto p-3 sm:p-6">
                     {/* Primeira linha: Título e botões */}
-                    <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center gap-4 min-w-0">
-                            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                                <FilePenLine className="h-8 w-8 text-white flex-shrink-0" />
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 sm:gap-0">
+                        <div className="flex items-center gap-2 sm:gap-4 min-w-0 w-full sm:w-auto">
+                            <div className="p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl flex-shrink-0">
+                                <FilePenLine className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                             </div>
-                            <div className="min-w-0">
-                                <h1 className="text-3xl font-bold text-white truncate">{editedProject.nome}</h1>
-                                <p className="text-blue-100 hidden md:block">Arraste os departamentos para reordenar • Clique para expandir</p>
+                            <div className="min-w-0 flex-1">
+                                <h1 className="text-xl sm:text-3xl font-bold text-white truncate">{editedProject.nome}</h1>
+                                <p className="text-blue-100 text-sm hidden md:block">Arraste os departamentos para reordenar • Clique para expandir</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                             <Dialog open={isAddDeptDialogOpen} onOpenChange={setAddDeptDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                                        <Plus className="mr-2 h-4 w-4" /> Novo Departamento
+                                    <Button className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base px-3 sm:px-4">
+                                        <Plus className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Novo Departamento</span><span className="sm:hidden">Novo Depto</span>
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
@@ -132,34 +132,34 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                            <div className="[&>*]:!bg-green-500 [&>*]:!hover:bg-green-600 [&>*]:!text-white [&>*]:!border-green-500 [&>*]:shadow-lg [&>*]:hover:shadow-xl [&>*]:transition-all [&>*]:duration-300">
+                            <div className="[&>*]:!bg-green-500 [&>*]:!hover:bg-green-600 [&>*]:!text-white [&>*]:!border-green-500 [&>*]:shadow-lg [&>*]:hover:shadow-xl [&>*]:transition-all [&>*]:duration-300 [&>*]:text-sm [&>*]:sm:text-base [&>*]:px-2 [&>*]:sm:px-4">
                                 <PrintButtonTabular projeto={editedProject} />
                             </div>
-                            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300" onClick={onClose}>
-                                <X className="mr-2 h-4 w-4" /> Fechar
+                            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300 text-sm sm:text-base px-3 sm:px-4 min-h-[44px]" onClick={onClose}>
+                                <X className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Fechar</span><span className="sm:hidden">X</span>
                             </Button>
                         </div>
                     </div>
 
                     {/* Segunda linha: Resumo do projeto */}
-                    <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                        <div className="flex items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 gap-4 sm:gap-0">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 w-full sm:w-auto">
                             <div className="flex items-center gap-2">
-                                <Building2 className="h-5 w-5 text-blue-200" />
-                                <span className="text-blue-100 font-medium">{getTotalDepartments()} Departamentos</span>
+                                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200" />
+                                <span className="text-blue-100 font-medium text-sm sm:text-base">{getTotalDepartments()} Departamentos</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Layers className="h-5 w-5 text-purple-200" />
-                                <span className="text-blue-100 font-medium">{getTotalPops()} POPs</span>
+                                <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
+                                <span className="text-blue-100 font-medium text-sm sm:text-base">{getTotalPops()} POPs</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/20 rounded-lg">
-                                <TrendingUp className="h-6 w-6" />
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
+                            <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg">
+                                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
                             </div>
-                            <div className="text-right">
-                                <p className="text-blue-100 text-sm font-medium">TOTAL DO PROJETO</p>
-                                <p className="text-2xl font-bold text-white">
+                            <div className="text-left sm:text-right">
+                                <p className="text-blue-100 text-xs sm:text-sm font-medium">TOTAL DO PROJETO</p>
+                                <p className="text-lg sm:text-2xl font-bold text-white">
                                     {calculateTotalProjeto().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </p>
                             </div>
