@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 
 import { Input } from '@/components/ui/input';
 
-import { Trash2, Plus, Users, Edit, FileText, MessageSquare, GripVertical, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, Users, Edit, FileText, MessageSquare, GripVertical, ChevronDown, X } from 'lucide-react';
 
 import { PopCard } from './PopCard';
 
@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { toast } from "sonner";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 
 import { ResourceGroup } from './ResourceGroup';
 
@@ -369,11 +369,11 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                                 </DialogTrigger>
 
-                                                                <DialogContent className="w-[95vw] sm:w-[95vw] max-w-[1600px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
+                                                                <DialogContent style={{ width: '90vw', maxWidth: '1400px' }} className="h-[90vh] flex flex-col p-3 sm:p-6">
 
                                                                     <DialogHeader className="flex-shrink-0"><DialogTitle className="text-lg sm:text-xl">Editando Modelo: {editingGroup?.nome}</DialogTitle></DialogHeader>
 
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto p-4 flex-grow">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-y-auto p-4 flex-grow">
 
                                                                         {editingGroup && Object.entries(RECURSO_META).map(([key, meta]) => (
 

@@ -91,7 +91,7 @@ export function ResourceGroup({ categoria, meta: { icon: Icon, color, label }, r
 
     return (
         <TooltipProvider>
-            <Card className="flex flex-col h-full min-h-[400px] bg-slate-50 shadow-sm">
+            <Card className="flex flex-col h-full bg-slate-50 shadow-sm">
                 <CardHeader className="flex-shrink-0 pb-4">
                     <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${color}`}>
                         <Icon size={22} /> {label}
@@ -102,8 +102,8 @@ export function ResourceGroup({ categoria, meta: { icon: Icon, color, label }, r
                         <p className="text-sm text-center text-slate-400 py-4 italic">Nenhum item.</p>
                     ) : (
                         recursos.map(recurso => (
-                            <div key={recurso.id} className="flex justify-between items-start text-sm p-3 rounded-md hover:bg-slate-200/70 group min-h-[50px]">
-                                <span className="flex-1 pr-2 break-words leading-relaxed">
+                            <div key={recurso.id} className="flex justify-between items-center text-sm p-2 rounded-md hover:bg-slate-200/70 group">
+                                <span className="flex-1 truncate pr-2">
                                     {recurso.nome}
                                     {!isRecurrenceCategory && (
                                         <span className="font-medium"> - {Number(recurso.custo).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>

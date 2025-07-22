@@ -135,8 +135,8 @@ export function ProjectEditor({ projeto, onUpdate, onClose }: ProjectEditorProps
                             <div className="[&>*]:!bg-green-500 [&>*]:!hover:bg-green-600 [&>*]:!text-white [&>*]:!border-green-500 [&>*]:shadow-lg [&>*]:hover:shadow-xl [&>*]:transition-all [&>*]:duration-300 [&>*]:text-sm [&>*]:sm:text-base [&>*]:px-2 [&>*]:sm:px-4">
                                 <PrintButtonTabular projeto={editedProject} />
                             </div>
-                            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300 text-sm sm:text-base px-3 sm:px-4 min-h-[44px]" onClick={onClose}>
-                                <X className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Fechar</span><span className="sm:hidden">X</span>
+                            <Button className="bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base px-3 sm:px-4" onClick={onClose}>
+                                <X className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Fechar</span>
                             </Button>
                         </div>
                     </div>

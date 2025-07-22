@@ -3,9 +3,9 @@ import React from 'react';
 import { Pop, GrupoDeRecursos, Recurso, CategoriasRecursos } from '@/types';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { ResourceGroup } from './ResourceGroup';
 import { RECURSO_META } from '@/lib/constants';
 
@@ -62,11 +62,11 @@ export function PopCard({ pop, gruposDisponiveis, onUpdate, onDelete }: PopCardP
                                 <Button variant="outline" size="sm" className="flex sm:hidden px-2"><Edit className="h-4 w-4" /></Button>
                             </DialogTrigger>
 
-                            <DialogContent className="w-[95vw] sm:w-[95vw] max-w-[1600px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
+                            <DialogContent style={{ width: '90vw', maxWidth: '1400px' }} className="h-[90vh] flex flex-col">
                                 <DialogHeader className="flex-shrink-0">
                                     <DialogTitle className="text-lg sm:text-xl">Editando Recursos de: {pop.nome}</DialogTitle>
                                 </DialogHeader>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto p-4 flex-grow">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-y-auto p-4 flex-grow">
                                     {Object.entries(RECURSO_META).map(([key, meta]) => (
                                         <ResourceGroup
                                             key={key}
