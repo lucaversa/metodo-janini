@@ -373,7 +373,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                                     <DialogHeader className="flex-shrink-0"><DialogTitle className="text-lg sm:text-xl">Editando Modelo: {editingGroup?.nome}</DialogTitle></DialogHeader>
 
-                                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 overflow-y-auto p-1 flex-grow">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto p-4 flex-grow">
 
                                                                         {editingGroup && Object.entries(RECURSO_META).map(([key, meta]) => (
 
