@@ -286,7 +286,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                         <TabsTrigger value="observacoes" className="text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-sm py-2 sm:py-3 transition-all duration-300 min-h-[44px]">
 
-                                            <div className="flex items-center gap-1 sm:gap-2"><MessageSquare size={16} className="sm:w-[18px] sm:h-[18px]" /><span className="text-xs sm:text-sm">Obs</span></div>
+                                            <div className="flex items-center gap-1 sm:gap-2"><MessageSquare size={16} className="sm:w-[18px] sm:h-[18px]" /><span className="text-xs sm:text-sm">Observações</span></div>
 
                                         </TabsTrigger>
 
@@ -356,7 +356,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                         <span className="font-medium text-slate-700">{grupo.nome}</span>
 
-                                                        <div className="flex gap-2">
+                                                        <div className="flex flex-row items-center gap-2">
 
                                                             <Dialog onOpenChange={(isOpen) => !isOpen && setEditingGroup(null)}>
 
@@ -369,7 +369,7 @@ export function DepartmentCard({ departamento, onUpdate, onDelete, isOpen, onTog
 
                                                                 </DialogTrigger>
 
-                                                                <DialogContent className="w-[95vw] sm:w-[90vw] max-w-[1400px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
+                                                                <DialogContent className="w-[95vw] sm:w-[95vw] max-w-[1600px] h-[95vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
 
                                                                     <DialogHeader className="flex-shrink-0"><DialogTitle className="text-lg sm:text-xl">Editando Modelo: {editingGroup?.nome}</DialogTitle></DialogHeader>
 
